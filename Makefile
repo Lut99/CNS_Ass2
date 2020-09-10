@@ -4,7 +4,7 @@
 ### CONSTANTS ###
 GCC := gcc
 GCC_ARGS := -O2 -Wall -Wextra -std=c11
-EXT_LIBS := -lnet
+EXT_LIBS := -lnet -lpcap
 
 SRC := src
 BIN := bin
