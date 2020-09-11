@@ -1,22 +1,18 @@
-/* CHECK SERVER.c
- *   by DukeD1rtfarm3r
+/* SERVER ENABLE.c
+ *   by Lut99
  *
  * Created:
- *   11/09/2020, 14:42:18
+ *   11/09/2020, 17:05:14
  * Last edited:
- *   11/09/2020, 16:56:33
+ *   11/09/2020, 17:11:04
  * Auto updated?
  *   Yes
  *
  * Description:
- *   This file contains a simple test to see if the given server is
- *   responding to TCP connections. It makes use of the test_server_status
- *   function, in the similarly named C-file.
- * 
- *   For a list of the most important sources used, please refer to the header
- *   in exploit.c.
+ *   This file attempts to disable the server by sending one (potentially)
+ *   spoofed TCP-SYN packet with 'enable' in its payload. Use the
+ *   'check_server' executable to see if the server is reachable again.
 **/
-
 
 #include <stdio.h>
 #include <stddef.h>
@@ -31,7 +27,9 @@
 void print_help(char* executable) {
     printf("Usage: %s -h -s SERVER_IP -i INTERFACE\n", executable);
     printf("\n-h, --help\t\tShows this help message.\n");
-    printf("\n-s, --server\t\tSets the server IPv4-address that we want to check (DEFAULT: %u.%u.%u.%u).\n",
+    printf("\n-s, --server\t\tSets the IPv4-address of the server we want to enable again (DEFAULT: %u.%u.%u.%u).\n",
+           IP_FORMAT(DEFAULT_SERVER_ADDR));
+    printf("\n-p, --port\t\tSets the port of the server we want to enable again (DEFAULT: %u.%u.%u.%u).\n",
            IP_FORMAT(DEFAULT_SERVER_ADDR));
     printf("\n-i, --interface\t\tSets the interface we want to use (DEFAULT: %s).\n",
            DEFAULT_INTERFACE);
@@ -155,3 +153,5 @@ int main(int argc, char** argv) {
     printf("\nDone.\n\n");
     return EXIT_SUCCESS;
 }
+
+
