@@ -4,7 +4,7 @@
  * Created:
  *   10/09/2020, 21:21:53
  * Last edited:
- *   11/09/2020, 16:31:15
+ *   11/09/2020, 16:32:47
  * Auto updated?
  *   Yes
  *
@@ -81,8 +81,7 @@ int test_server_status(libnet_t* l, pcap_t* p, char* errbuf, char* interface, ui
     // Compile the filter used for the interface
     char filter[1024];
     sprintf(filter, "(src host %d.%d.%d.%d) && (dst host %d.%d.%d.%d) && (src port %d) && (dst port %d) && (tcp) && (tcp[tcpflags] & (tcp-syn|tcp-ack)) && ()",
-            IP_PART(target_ip, 0), IP_PART(target_ip, 1), IP_PART(target_ip, 2), IP_PART(target_ip, 3),
-            IP_PART(attacker_ip, 0), IP_PART(attacker_ip, 1), IP_PART(attacker_ip, 2), IP_PART(attacker_ip, 3),
+            IP_FORMAT(target_ip), IP_FORMAT(attacker_ip),
             target_port,
             source_port);
     struct bpf_program filter_program;
