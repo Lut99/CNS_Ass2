@@ -7,21 +7,25 @@ GCC_ARGS := -O2 -Wall -Wextra -std=c11
 EXT_LIBS := -lnet -lpcap
 
 SRC := src
+LIB := $(SRC)/lib
 BIN := bin
 OBJ := $(BIN)/obj
+LIB_OBJ := $(OBJ)/lib
 
-LIBS := 
+LIBS := $(LIB_OBJ)/test_server_status.o $(LIB_OBJ)/tools.o
+INCL := -I$(LIB)
 
 
 
 ### PHONY RULES ###
 
-.PHONY: default exploit all clean
+.PHONY: default exploit check_server all clean
 default: all
 
-all: exploit
+all: exploit check_server
 clean:
 	rm -f $(BIN)/exploit
+	rm -f $(BIN)/check_server
 	rm -f $(OBJ)/*.o
 
 
@@ -32,6 +36,8 @@ $(BIN):
 	mkdir -p $@
 $(OBJ): $(BIN)
 	mkdir -p $@
+$(LIB_OBJ): $(OBJ)
+	mkdir -p $@
 
 
 
@@ -40,8 +46,16 @@ $(OBJ): $(BIN)
 # Any object file in source
 $(OBJ)/%.o: $(SRC)/%.c | $(OBJ)
 	$(GCC) $(GCC_ARGS) -o $@ -c $<
+# Any object file in lib
+$(LIB_OBJ)/%.o: $(LIB)/%.c | $(LIB_OBJ)
+	$(GCC) $(GCC_ARGS) -o $@ -c $<
 
 # The exploit itself
 $(BIN)/exploit: $(OBJ)/exploit.o $(LIBS) | $(BIN)
-	$(GCC) $(GCC_ARGS) -o $@ $^ $(EXT_LIBS)
+	$(GCC) $(GCC_ARGS) $(INCL) -o $@ $^ $(EXT_LIBS)
 exploit: $(BIN)/exploit
+
+# The server status check
+$(BIN)/check_server: $(OBJ)/check_server.o $(LIBS) | $(BIN)
+	$(GCC) $(GCC_ARGS) $(INCL) -o $@ $^ $(EXT_LIBS)
+check_server: $(BIN)/check_server

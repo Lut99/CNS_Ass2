@@ -1,10 +1,10 @@
 /* TEST SERVER STATUS.c
- *   by Lut99
+ *   by DukeD1rtfarm3r
  *
  * Created:
  *   10/09/2020, 21:21:53
  * Last edited:
- *   10/09/2020, 21:26:10
+ *   11/09/2020, 14:49:09
  * Auto updated?
  *   Yes
  *
@@ -12,20 +12,26 @@
  *   The functions and files in this file check if the server at the given
  *   ip is reachable over the given interface. Doing so allows the user to,
  *   in effect, check if an TCP sync flood DoS-attack was succesfull.
+ * 
+ *   For a list of the most important sources used, please refer to the header
+ *   in exploit.c.
 **/
 
-typedef unsigned int uint;
-#include <libnet.h>
-#include <pcap.h>
+#include "test_server_status.h"
+
+
+/***** CONSTANTS *****/
+/* Timeout (in seconds) until we declare the server to be DoS'd. */
+#define DOS_VERIFY_TIMEOUT 1
 
 
 /* The test_server_status function, which tests if the given server is reachable over the given interface on the given TCP-port via TCP. Returns 1 if it is, 0 if it isn't and -1 if an error occured, which is written to the given error buffer. */
-int test_server_status(libnet_t* l, pcap_t* p, char* interface, char* target_ip, uint16_t port) {
+int test_server_status(libnet_t* l, pcap_t* p, char* interface, uint32_t target_ip, uint16_t target_port) {
     // Build the TCP header
     uint32_t source_port = libnet_get_prand(LIBNET_PRu16);
     libnet_ptag_t tcp = libnet_build_tcp(
         source_port,                    // We use any arbitrary source port number
-        port,
+        target_port,
         libnet_get_prand(LIBNET_PRu16), // We use any arbitrary sequence number
         0,                              // We use any arbitrary acknowledgement number
         TH_SYN,                         // We use only the SYN control
@@ -61,7 +67,7 @@ int test_server_status(libnet_t* l, pcap_t* p, char* interface, char* target_ip,
         IPPROTO_TCP,                                    // The next protocol is our TCP
         0,                                              // Autofill the checksum
         attacker_ip,
-        server_ip,
+        target_ip,
         NULL,                                           // No payload, as libpcap will link these together
         0,                                              // Payload size is therefore also NULL
         l,
@@ -75,19 +81,28 @@ int test_server_status(libnet_t* l, pcap_t* p, char* interface, char* target_ip,
     // Create the pcap handle to listen for packets
     pcap_t* p = pcap_open_live(interface, BUFSIZ, 1, DOS_VERIFY_TIMEOUT, pcap_error);
     if (p == NULL) {
-        fprintf("\n[ERROR] Failed to open device '%s' for packet capture: %s\n", interface, pcap_error);
+        fprintf(stderr, "\n[ERROR] Failed to open device '%s' for packet capture: %s\n", interface, pcap_error);
         return -1;
     }
 
     // Compile the filter used for the interface
     char filter[1024];
-    sprintf(filter, "(src host %d.%d.%d.%d) && (dst host %d.%d.%d.%d) && (src port %d) && (dst port %d) && (tcp[tcpflags] & (tcp-syn|tcp-ack))",
-            IP_PART(server_ip, 0), IP_PART(server_ip, 1), IP_PART(server_ip, 2), IP_PART(server_ip, 3),
+    sprintf(filter, "(src host %d.%d.%d.%d) && (dst host %d.%d.%d.%d) && (src port %d) && (dst port %d) && (tcp) && (tcp[tcpflags] & (tcp-syn|tcp-ack)) && ()",
+            IP_PART(target_ip, 0), IP_PART(target_ip, 1), IP_PART(target_ip, 2), IP_PART(target_ip, 3),
             IP_PART(attacker_ip, 0), IP_PART(attacker_ip, 1), IP_PART(attacker_ip, 2), IP_PART(attacker_ip, 3),
-            DEFAULT_DOS_TARGET_PORT,
-            port);
-    struct bpf_program* filter_program;
-    if (pcap_compile(p, bpf_program, filter, ))
+            target_port,
+            source_port);
+    struct bpf_program filter_program;
+    if (pcap_compile(p, &filter_program, filter, 1, PCAP_NETMASK_UNKNOWN) == -1) {
+        fprintf(stderr, "\n[ERROR] Failed to compile filter \"%s\" for interface '%s': %s\n", filter, interface, pcap_geterr(p));
+        return -1;
+    }
+
+    // Assign the filter to the interface
+    if (pcap_setfilter(p, &filter_program) == -1) {
+        fprintf(stderr, "\n[ERROR] Could not assign filter to interface '%s': %s\n", interface, pcap_geterr(p));
+        return -1;
+    }
 
     // Send the packet three times, to account for packets that might be lost
     for (int i = 1; i <= 3; i++) {
@@ -97,8 +112,8 @@ int test_server_status(libnet_t* l, pcap_t* p, char* interface, char* target_ip,
         }
 
         // Wait for a response
-        struct pcap_pkthdr* packet = pcap_next(p, packet);
-        if (packet != NULL) {
+        struct pcap_pkthdr* packet;
+        if (pcap_next(p, packet) != NULL) {
             // We received a valid packet, which means that our DoS failed...
             pcap_close(p);
             return 0;
