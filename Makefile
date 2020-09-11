@@ -3,7 +3,7 @@
 
 ### CONSTANTS ###
 GCC := gcc
-GCC_ARGS := -O2 -Wall -Wextra -std=c11
+GCC_ARGS := -O2 -Wall -Wextra
 EXT_LIBS := -lnet -lpcap
 
 SRC := src
@@ -45,17 +45,17 @@ $(LIB_OBJ): $(OBJ)
 
 # Any object file in source
 $(OBJ)/%.o: $(SRC)/%.c | $(OBJ)
-	$(GCC) $(GCC_ARGS) -o $@ -c $<
+	$(GCC) $(GCC_ARGS) $(INCL) -o $@ -c $<
 # Any object file in lib
 $(LIB_OBJ)/%.o: $(LIB)/%.c | $(LIB_OBJ)
-	$(GCC) $(GCC_ARGS) -o $@ -c $<
+	$(GCC) $(GCC_ARGS) $(INCL) -o $@ -c $<
 
 # The exploit itself
 $(BIN)/exploit: $(OBJ)/exploit.o $(LIBS) | $(BIN)
-	$(GCC) $(GCC_ARGS) $(INCL) -o $@ $^ $(EXT_LIBS)
+	$(GCC) $(GCC_ARGS) -o $@ $^ $(EXT_LIBS)
 exploit: $(BIN)/exploit
 
 # The server status check
 $(BIN)/check_server: $(OBJ)/check_server.o $(LIBS) | $(BIN)
-	$(GCC) $(GCC_ARGS) $(INCL) -o $@ $^ $(EXT_LIBS)
+	$(GCC) $(GCC_ARGS) -o $@ $^ $(EXT_LIBS)
 check_server: $(BIN)/check_server

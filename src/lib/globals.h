@@ -4,7 +4,7 @@
  * Created:
  *   11/09/2020, 14:57:51
  * Last edited:
- *   11/09/2020, 15:04:54
+ *   11/09/2020, 16:19:49
  * Auto updated?
  *   Yes
  *
@@ -21,7 +21,7 @@
 #define IP_PART(ADDR, I) \
     (((ADDR) >> (8 * (3 - I))) & 0xFF)
 /* Returns the IP-address as 4 8-bit parts, ready to be parsed by a xprintf function. */
-#define IP_FORMAT(ADDR, I) \
+#define IP_FORMAT(ADDR) \
     (((ADDR) >> 24) & 0xFF), (((ADDR) >> 16) & 0xFF), (((ADDR) >> 8) & 0xFF), ((ADDR) & 0xFF)
 
 
@@ -35,10 +35,8 @@
 #define DEFAULT_SERVER_ADDR 0xAC103603
 /* The default interface. */
 #define DEFAULT_INTERFACE "eth0"
-/* The default source port used for DoS'ing the server. */
-#define DEFAULT_DOS_SOURCE_PORT 8888
 /* The default destination port used for DoS'ing the server. */
-#define DEFAULT_DOS_TARGET_PORT 513
+#define DEFAULT_SERVER_PORT 513
 /* The maximum number of tries to DoS. */
 #define MAX_DOS_TRIES 5
 /* The timeout (in seconds) for the program to wait for the server's packets after the DoS-attack. */

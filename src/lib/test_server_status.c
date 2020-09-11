@@ -4,7 +4,7 @@
  * Created:
  *   10/09/2020, 21:21:53
  * Last edited:
- *   11/09/2020, 14:49:09
+ *   11/09/2020, 16:20:43
  * Auto updated?
  *   Yes
  *
@@ -17,6 +17,7 @@
  *   in exploit.c.
 **/
 
+#include "globals.h"
 #include "test_server_status.h"
 
 
@@ -26,7 +27,7 @@
 
 
 /* The test_server_status function, which tests if the given server is reachable over the given interface on the given TCP-port via TCP. Returns 1 if it is, 0 if it isn't and -1 if an error occured, which is written to the given error buffer. */
-int test_server_status(libnet_t* l, pcap_t* p, char* interface, uint32_t target_ip, uint16_t target_port) {
+int test_server_status(libnet_t* l, pcap_t* p, char* errbuf, char* interface, uint32_t target_ip, uint16_t target_port) {
     // Build the TCP header
     uint32_t source_port = libnet_get_prand(LIBNET_PRu16);
     libnet_ptag_t tcp = libnet_build_tcp(
@@ -50,10 +51,9 @@ int test_server_status(libnet_t* l, pcap_t* p, char* interface, uint32_t target_
     }
     
     // Extract the ipv4 and netmask of this interface
-    char pcap_error[PCAP_ERRBUF_SIZE];
     bpf_u_int32 attacker_ip, attacker_netmask;
-    if (pcap_lookupnet(interface, &attacker_ip, &attacker_netmask, pcap_error) == -1) {
-        fprintf("\n[ERROR] Failed to obtain netmask of interface '%s'\n", pcap_error);
+    if (pcap_lookupnet(interface, &attacker_ip, &attacker_netmask, errbuf) == -1) {
+        fprintf("\n[ERROR] Failed to obtain netmask of interface '%s'\n", errbuf);
         return -1;
     }
 
@@ -78,13 +78,6 @@ int test_server_status(libnet_t* l, pcap_t* p, char* interface, uint32_t target_
         return -1;
     }
 
-    // Create the pcap handle to listen for packets
-    pcap_t* p = pcap_open_live(interface, BUFSIZ, 1, DOS_VERIFY_TIMEOUT, pcap_error);
-    if (p == NULL) {
-        fprintf(stderr, "\n[ERROR] Failed to open device '%s' for packet capture: %s\n", interface, pcap_error);
-        return -1;
-    }
-
     // Compile the filter used for the interface
     char filter[1024];
     sprintf(filter, "(src host %d.%d.%d.%d) && (dst host %d.%d.%d.%d) && (src port %d) && (dst port %d) && (tcp) && (tcp[tcpflags] & (tcp-syn|tcp-ack)) && ()",
@@ -105,7 +98,7 @@ int test_server_status(libnet_t* l, pcap_t* p, char* interface, uint32_t target_
     }
 
     // Send the packet three times, to account for packets that might be lost
-    for (int i = 1; i <= 3; i++) {
+    for (int i = 1; i <= MAX_DOS_TRIES; i++) {
         if (libnet_write(l) == -1) {
             fprintf(stderr, "[ERROR] Could not send DoS-verification packet %d/3: %s\n", i, libnet_geterror(l));
             return EXIT_FAILURE;
