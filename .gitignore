@@ -1,3 +1,6 @@
+# Everything in bin
+bin/*
+
 # Prerequisites
 *.d
 
