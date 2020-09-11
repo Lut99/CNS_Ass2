@@ -4,7 +4,7 @@
  * Created:
  *   10/09/2020, 21:21:53
  * Last edited:
- *   11/09/2020, 16:38:02
+ *   11/09/2020, 16:39:48
  * Auto updated?
  *   Yes
  *
@@ -59,7 +59,7 @@ int test_server_status(libnet_t* l, pcap_t* p, char* errbuf, char* interface, ui
     // Reverse byte order
     uint32_t attacker_ip = 0;
     for (int i = 0; i < 4; i++) {
-        attacker_ip |= r_attacker_ip & (0xFF << (i * 8));
+        attacker_ip |= ((r_attacker_ip >> (24 - i * 8)) & 0xFF) << (i * 8);
     }
 
     // Next, we build the ipv4 header
