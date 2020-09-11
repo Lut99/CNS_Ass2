@@ -4,7 +4,7 @@
  * Created:
  *   10/09/2020, 21:21:53
  * Last edited:
- *   11/09/2020, 16:20:43
+ *   11/09/2020, 16:31:15
  * Auto updated?
  *   Yes
  *
@@ -53,7 +53,7 @@ int test_server_status(libnet_t* l, pcap_t* p, char* errbuf, char* interface, ui
     // Extract the ipv4 and netmask of this interface
     bpf_u_int32 attacker_ip, attacker_netmask;
     if (pcap_lookupnet(interface, &attacker_ip, &attacker_netmask, errbuf) == -1) {
-        fprintf("\n[ERROR] Failed to obtain netmask of interface '%s'\n", errbuf);
+        fprintf(stderr, "\n[ERROR] Failed to obtain netmask of interface '%s'\n", errbuf);
         return -1;
     }
 
@@ -105,8 +105,8 @@ int test_server_status(libnet_t* l, pcap_t* p, char* errbuf, char* interface, ui
         }
 
         // Wait for a response
-        struct pcap_pkthdr* packet;
-        if (pcap_next(p, packet) != NULL) {
+        struct pcap_pkthdr packet;
+        if (pcap_next(p, &packet) != NULL) {
             // We received a valid packet, which means that our DoS failed...
             pcap_close(p);
             return 0;
