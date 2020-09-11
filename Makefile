@@ -3,7 +3,7 @@
 
 ### CONSTANTS ###
 GCC := gcc
-GCC_ARGS := -O2 -Wall -Wextra
+GCC_ARGS := -O2 -Wall -Wextra -std=c11 -D_GNU_SOURCE
 EXT_LIBS := -lnet -lpcap
 
 SRC := src
