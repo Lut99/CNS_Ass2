@@ -4,7 +4,7 @@
  * Created:
  *   11/09/2020, 17:05:14
  * Last edited:
- *   11/09/2020, 20:59:29
+ *   11/09/2020, 21:12:42
  * Auto updated?
  *   Yes
  *
@@ -25,7 +25,7 @@
 /***** HELPER FUNCTIONS *****/
 /* Prints a neat help message. */
 void print_help(char* executable) {
-    printf("Usage: %s -h -s SERVER_IP -i INTERFACE\n\n", executable);
+    printf("Usage: %s -h -I SERVER_IP -P SERVER_PORT -i XTERM_IP -p XTERM_PORT -d INTERFACE\n\n", executable);
     printf("-h, --help\t\tShows this help message.\n");
     printf("-I, --server-ip\t\tSets the IPv4-address of the server we want to enable again (DEFAULT: %u.%u.%u.%u).\n",
            IP_FORMAT(DEFAULT_SERVER_ADDR));
@@ -132,7 +132,7 @@ int main(int argc, char** argv) {
 
 
     /* Print a neat header message. */
-    printf("\n*** SERVER STATUS CHECK ***\n\n");
+    printf("\n*** SERVER ENABLER ***\n\n");
 
     // Print the options used
     printf("Using options:\n");
@@ -177,5 +177,3 @@ int main(int argc, char** argv) {
     printf("\nDone.\n\n");
     return EXIT_SUCCESS;
 }
-
-
