@@ -4,7 +4,7 @@
  * Created:
  *   10/09/2020, 21:21:53
  * Last edited:
- *   11/09/2020, 16:39:48
+ *   11/09/2020, 16:52:07
  * Auto updated?
  *   Yes
  *
@@ -85,7 +85,7 @@ int test_server_status(libnet_t* l, pcap_t* p, char* errbuf, char* interface, ui
 
     // Compile the filter used for the interface
     char filter[1024];
-    sprintf(filter, "(src host %d.%d.%d.%d) && (dst host %d.%d.%d.%d) && (src port %d) && (dst port %d) && (tcp) && (tcp[tcpflags] & (tcp-syn|tcp-ack))",
+    sprintf(filter, "(src host %d.%d.%d.%d) && (dst host %d.%d.%d.%d) && (src port %d) && (dst port %d) && (tcp) && ((tcp[13] == 0x14) || (tcp[13] == 0x12))",
             IP_FORMAT(target_ip), IP_FORMAT(attacker_ip),
             target_port,
             source_port);
