@@ -4,7 +4,7 @@
  * Created:
  *   11/09/2020, 17:05:14
  * Last edited:
- *   11/09/2020, 17:11:04
+ *   11/09/2020, 20:38:21
  * Auto updated?
  *   Yes
  *
@@ -27,17 +27,20 @@
 void print_help(char* executable) {
     printf("Usage: %s -h -s SERVER_IP -i INTERFACE\n", executable);
     printf("\n-h, --help\t\tShows this help message.\n");
-    printf("\n-s, --server\t\tSets the IPv4-address of the server we want to enable again (DEFAULT: %u.%u.%u.%u).\n",
+    printf("\n-I, --server-ip\t\tSets the IPv4-address of the server we want to enable again (DEFAULT: %u.%u.%u.%u).\n",
            IP_FORMAT(DEFAULT_SERVER_ADDR));
-    printf("\n-p, --port\t\tSets the port of the server we want to enable again (DEFAULT: %u.%u.%u.%u).\n",
-           IP_FORMAT(DEFAULT_SERVER_ADDR));
-    printf("\n-i, --interface\t\tSets the interface we want to use (DEFAULT: %s).\n",
+    printf("\n-P, --server-port\t\tSets the port of the server we want to enable again (DEFAULT: %u).\n",
+           DEFAULT_SERVER_PORT);
+    printf("\n-i, --xterm-ip\t\tSets the IPv4-address of the xterminal we want to impersonate (DEFAULT: %u.%u.%u.%u).\n",
+           IP_FORMAT(DEFAULT_XTERM_ADDR));
+    printf("\n-p, --xterm-port\t\tSets the port of the xterminal we want to impersonate (DEFAULT: random).\n");
+    printf("\n-d, --device\t\tSets the interface we want to use (DEFAULT: %s).\n",
            DEFAULT_INTERFACE);
     printf("\n");
 }
 
 /* Parses the commandline arguments. Returns 0 on success, or an error code if something went wrong. */
-int parse_cli(uint32_t* server_ip, char* interface, int argc, char** argv) {
+int parse_cli(uint32_t* server_ip, uint16_t* server_port, uint32_t* xterm_ip, uint16_t* xterm_port, char* interface, int argc, char** argv) {
     for (int i = 1; i < argc; i++) {
         char* arg = argv[i];
         if (arg[0] == '-') {
@@ -46,21 +49,54 @@ int parse_cli(uint32_t* server_ip, char* interface, int argc, char** argv) {
                 // Print the help message, then quit
                 print_help(argv[0]);
                 return -2;
-            } else if ((arg[1] == 's' && arg[2] == '\0') || streq(arg + 1, "-server")) {
-                // xterm ip, so parse the next argument as an ip
+            } else if ((arg[1] == 'I' && arg[2] == '\0') || streq(arg + 1, "-server-ip")) {
+                // server ip, so parse the next argument as an ip
                 if (i == argc - 1) {
                     fprintf(stderr, "[ERROR] Missing value for '%s'.\n", arg);
                     return -1;
                 }
-                if (!str_to_ip(server_ip, argv[i + 1])) { return EXIT_FAILURE; }
-            } else if ((arg[1] == 'i' && arg[2] == '\0') || streq(arg + 1, "-interface")) {
-                // xterm ip, so parse the next argument as an ip
+                if (!str_to_ip(server_ip, argv[i + 1])) {
+                    fprintf(stderr, "[ERROR] Could not parse '%s' as an IPv4 address.\n", argv[i + 1]);
+                    return EXIT_FAILURE;
+                }
+            } else if ((arg[1] == 'P' && arg[2] == '\0') || streq(arg + 1, "-server-port")) {
+                // server port, so parse the next argument as an 16-bit unsigned integer
+                if (i == argc - 1) {
+                    fprintf(stderr, "[ERROR] Missing value for '%s'.\n", arg);
+                    return -1;
+                }
+                if (!str_to_uint16(server_port, argv[i + 1])) {
+                    fprintf(stderr, "[ERROR] Could not parse '%s' as a 16-bit port number.\n", argv[i + 1]);
+                    return EXIT_FAILURE;
+                }
+            } else if ((arg[1] == 'i' && arg[2] == '\0') || streq(arg + 1, "-xterm-ip")) {
+                // spoofed ip, so parse the next argument as an ip
+                if (i == argc - 1) {
+                    fprintf(stderr, "[ERROR] Missing value for '%s'.\n", arg);
+                    return -1;
+                }
+                if (!str_to_ip(xterm_ip, argv[i + 1])) {
+                    fprintf(stderr, "[ERROR] Could not parse '%s' as an IPv4 address.\n", argv[i + 1]);
+                    return EXIT_FAILURE;
+                }
+            } else if ((arg[1] == 'p' && arg[2] == '\0') || streq(arg + 1, "-xterm-port")) {
+                // spoofed port, so parse the next argument as an 16-bit unsigned integer
+                if (i == argc - 1) {
+                    fprintf(stderr, "[ERROR] Missing value for '%s'.\n", arg);
+                    return -1;
+                }
+                if (!str_to_uint16(xterm_port, argv[i + 1])) {
+                    fprintf(stderr, "[ERROR] Could not parse '%s' as a 16-bit port number.\n", argv[i + 1]);
+                    return EXIT_FAILURE;
+                }
+            } else if ((arg[1] == 'd' && arg[2] == '\0') || streq(arg + 1, "-device")) {
+                // The interface, which we can copy literally (if not too large)
                 if (i == argc - 1) {
                     fprintf(stderr, "[ERROR] Missing value for '%s'.\n", arg);
                     return -1;
                 }
                 if (strlen(argv[i + 1]) >= MAX_INTERFACE_SIZE) {
-                    fprintf(stderr, "[ERROR] Too long name for interface '%s'.\n", argv[i + 1]);
+                    fprintf(stderr, "[ERROR] Device name '%s' too long.\n", argv[i + 1]);
                     return -1;
                 }
                 strcpy(interface, argv[i + 1]);
@@ -79,11 +115,16 @@ int parse_cli(uint32_t* server_ip, char* interface, int argc, char** argv) {
 
 /***** ENTRY POINT *****/
 int main(int argc, char** argv) {
-    // First, parse the CLI args
+    // First, initialize the options
     uint32_t server_ip = DEFAULT_SERVER_ADDR;
+    uint16_t server_port = DEFAULT_SERVER_PORT;
+    uint32_t xterm_ip = DEFAULT_XTERM_ADDR;
+    uint16_t xterm_port = libnet_get_prand(LIBNET_PRu16);
     char interface[MAX_INTERFACE_SIZE];
     strcpy(interface, DEFAULT_INTERFACE);
-    int result = parse_cli(&server_ip, interface, argc, argv);
+
+    // Parse the options from the command line
+    int result = parse_cli(&server_ip, &server_port, &xterm_ip, &xterm_port, interface, argc, argv);
     if (result != 0) {
         return result;
     }
@@ -95,17 +136,17 @@ int main(int argc, char** argv) {
 
     // Print the options used
     printf("Using options:\n");
-    printf(" - Server IP : %u.%u.%u.%u\n", IP_FORMAT(server_ip));
-    printf(" - Interface : '%s'\n", interface);
+    printf(" - Server IP      : %u.%u.%u.%u\n", IP_FORMAT(server_ip));
+    printf(" - Server port    : %u\n", server_port);
+    printf(" - Xterminal IP   : %u.%u.%u.%u\n", IP_FORMAT(xterm_ip));
+    printf(" - Xterminal port : %u\n", xterm_port);
+    printf(" - Interface      : '%s'\n", interface);
     printf("\n");
     fflush(stdout);
 
-
-
-    /* Open the libnet raw socket. */
     printf("Initializing libnet on interface '%s'...\n", interface);
-    // Initialize the the error message buffer. Note that we will also use this for PCAP, so we use whatever constant is longer
-    char errbuf[LIBNET_ERRBUF_SIZE > PCAP_ERRBUF_SIZE ? LIBNET_ERRBUF_SIZE : PCAP_ERRBUF_SIZE];
+    // Initialize the the error message buffer.
+    char errbuf[LIBNET_ERRBUF_SIZE];
 
     // Open a raw IP4 socket
     libnet_t* l;
@@ -122,29 +163,12 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
-
-
-    /* Then, open the pcap socket. */
-    printf("Initializing pcap on interface '%s'...\n", interface);
-    // Create the pcap handle to listen for packets
-    pcap_t* p = pcap_open_live(interface, BUFSIZ, 1, DOS_VERIFY_TIMEOUT, errbuf);
-    if (p == NULL) {
-        libnet_destroy(l);
-        fprintf(stderr, "[ERROR] Failed to open device '%s' for packet capture: %s\n", interface, errbuf);
-        return -1;
-    }
-
-    // Then, run the test_server_status function and see if it works
-    printf("Checking server status...\n");
-    result = test_server_status(l, p, errbuf, interface, server_ip, DEFAULT_SERVER_PORT);
-    if (result == 1) {
-        printf("\nServer appears to be OFFLINE (succesfully DoS'd)\n");
-    } else if (result == 0) {
-        printf("\nServer appears to be ONLINE (not DoS'd)\n");
-    } else {
-        libnet_destroy(l);
+    printf("Attempting to enable server...\n");
+    result = server_enable(l, errbuf, interface, xterm_ip, xterm_port, server_ip, server_port);
+    if (result != 0) {
         return result;
     }
+    printf("Done (run 'check_server' to see if it was successful)\n");
 
     // Done, close the sockets
     libnet_destroy(l);

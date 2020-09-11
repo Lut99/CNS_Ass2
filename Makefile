@@ -19,10 +19,11 @@ INCL := -I$(LIB)
 
 ### PHONY RULES ###
 
-.PHONY: default exploit server_enable server_disable check_server all clean
+.PHONY: default exploit server server_enable server_disable check_server all clean
 default: all
 
 all: exploit server_enable server_disable check_server
+server: server_enable server_disable check_server
 clean:
 	rm -f $(BIN)/exploit
 	rm -f $(BIN)/check_server
