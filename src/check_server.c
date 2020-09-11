@@ -4,7 +4,7 @@
  * Created:
  *   11/09/2020, 14:42:18
  * Last edited:
- *   11/09/2020, 20:38:37
+ *   11/09/2020, 20:40:05
  * Auto updated?
  *   Yes
  *
@@ -29,13 +29,13 @@
 /***** HELPER FUNCTIONS *****/
 /* Prints a neat help message. */
 void print_help(char* executable) {
-    printf("Usage: %s -h -s SERVER_IP -i INTERFACE\n", executable);
-    printf("\n-h, --help\t\tShows this help message.\n");
-    printf("\n-I, --server-ip\t\tSets the server IPv4-address that we want to check (DEFAULT: %u.%u.%u.%u).\n",
+    printf("Usage: %s -h -s SERVER_IP -i INTERFACE\n\n", executable);
+    printf("-h, --help\t\tShows this help message.\n");
+    printf("-I, --server-ip\t\tSets the IPv4-address of the server we want to enable again (DEFAULT: %u.%u.%u.%u).\n",
            IP_FORMAT(DEFAULT_SERVER_ADDR));
-    printf("\n-P, --server-port\t\tSets the port of the server we want to enable again (DEFAULT: %u).\n",
+    printf("-P, --server-port\tSets the port of the server we want to enable again (DEFAULT: %u).\n",
            DEFAULT_SERVER_PORT);
-    printf("\n-d, --device\t\tSets the interface we want to use (DEFAULT: %s).\n",
+    printf("-d, --device\t\tSets the interface we want to use (DEFAULT: '%s').\n",
            DEFAULT_INTERFACE);
     printf("\n");
 }
