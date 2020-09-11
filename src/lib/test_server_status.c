@@ -4,7 +4,7 @@
  * Created:
  *   10/09/2020, 21:21:53
  * Last edited:
- *   11/09/2020, 16:32:47
+ *   11/09/2020, 16:35:10
  * Auto updated?
  *   Yes
  *
@@ -51,11 +51,13 @@ int test_server_status(libnet_t* l, pcap_t* p, char* errbuf, char* interface, ui
     }
     
     // Extract the ipv4 and netmask of this interface
-    bpf_u_int32 attacker_ip, attacker_netmask;
-    if (pcap_lookupnet(interface, &attacker_ip, &attacker_netmask, errbuf) == -1) {
+    bpf_u_int32 r_attacker_ip, r_attacker_netmask;
+    if (pcap_lookupnet(interface, &r_attacker_ip, &r_attacker_netmask, errbuf) == -1) {
         fprintf(stderr, "\n[ERROR] Failed to obtain netmask of interface '%s'\n", errbuf);
         return -1;
     }
+    // Reverse byte order
+    uint32_t attacker_ip = ((r_attacker_ip >> 24) & 0xFF) | ((r_attacker_ip >> 16) & 0xFF) | ((r_attacker_ip >> 8) & 0xFF) | (r_attacker_ip & 0xFF);
 
     // Next, we build the ipv4 header
     libnet_ptag_t ipv4 = libnet_build_ipv4(
