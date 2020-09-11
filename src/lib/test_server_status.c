@@ -4,7 +4,7 @@
  * Created:
  *   10/09/2020, 21:21:53
  * Last edited:
- *   11/09/2020, 16:35:10
+ *   11/09/2020, 16:38:02
  * Auto updated?
  *   Yes
  *
@@ -57,7 +57,10 @@ int test_server_status(libnet_t* l, pcap_t* p, char* errbuf, char* interface, ui
         return -1;
     }
     // Reverse byte order
-    uint32_t attacker_ip = ((r_attacker_ip >> 24) & 0xFF) | ((r_attacker_ip >> 16) & 0xFF) | ((r_attacker_ip >> 8) & 0xFF) | (r_attacker_ip & 0xFF);
+    uint32_t attacker_ip = 0;
+    for (int i = 0; i < 4; i++) {
+        attacker_ip |= r_attacker_ip & (0xFF << (i * 8));
+    }
 
     // Next, we build the ipv4 header
     libnet_ptag_t ipv4 = libnet_build_ipv4(
@@ -82,7 +85,7 @@ int test_server_status(libnet_t* l, pcap_t* p, char* errbuf, char* interface, ui
 
     // Compile the filter used for the interface
     char filter[1024];
-    sprintf(filter, "(src host %d.%d.%d.%d) && (dst host %d.%d.%d.%d) && (src port %d) && (dst port %d) && (tcp) && (tcp[tcpflags] & (tcp-syn|tcp-ack)) && ()",
+    sprintf(filter, "(src host %d.%d.%d.%d) && (dst host %d.%d.%d.%d) && (src port %d) && (dst port %d) && (tcp) && (tcp[tcpflags] & (tcp-syn|tcp-ack))",
             IP_FORMAT(target_ip), IP_FORMAT(attacker_ip),
             target_port,
             source_port);
