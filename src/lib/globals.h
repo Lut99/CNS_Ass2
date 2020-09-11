@@ -4,7 +4,7 @@
  * Created:
  *   11/09/2020, 14:57:51
  * Last edited:
- *   11/09/2020, 16:54:10
+ *   11/09/2020, 21:08:16
  * Auto updated?
  *   Yes
  *
@@ -22,7 +22,7 @@
     (((ADDR) >> (8 * (3 - I))) & 0xFF)
 /* Returns the IP-address as 4 8-bit parts, ready to be parsed by a xprintf function. */
 #define IP_FORMAT(ADDR) \
-    (((ADDR) >> 24) & 0xFF), (((ADDR) >> 16) & 0xFF), (((ADDR) >> 8) & 0xFF), ((ADDR) & 0xFF)
+    ((ADDR) & 0xFF), (((ADDR) >> 8) & 0xFF), (((ADDR) >> 16) & 0xFF), (((ADDR) >> 24) & 0xFF)
 
 
 
@@ -30,9 +30,9 @@
 /* The maximum number of characters (including null-character) in an interface string. */
 #define MAX_INTERFACE_SIZE 8
 /* The default ip-address (as a 32-bit number) of the xterminal. */
-#define DEFAULT_XTERM_ADDR 0xAC103604
+#define DEFAULT_XTERM_ADDR 0x043610AC
 /* The default ip-address of the server. */
-#define DEFAULT_SERVER_ADDR 0xAC103603
+#define DEFAULT_SERVER_ADDR 0x033610AC
 /* The default interface. */
 #define DEFAULT_INTERFACE "eth0"
 /* The default destination port used for DoS'ing the server. */

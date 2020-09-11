@@ -4,7 +4,7 @@
  * Created:
  *   11/09/2020, 14:48:33
  * Last edited:
- *   11/09/2020, 20:29:37
+ *   11/09/2020, 21:03:09
  * Auto updated?
  *   Yes
  *
@@ -38,10 +38,10 @@ int str_to_ip(uint32_t* result, char* ip_addr) {
     if (strlen(ip_addr) != (size_t) offset) { return 0; }
 
     // Try to convert each number
-    result = 0x0;
+    *result = 0x0;
     for (int i = 0; i < 4; i++) {
         if (ip[i] > 255) { return 0; }
-        (*result) |= ip[i] << (24 - (i * 8));
+        (*result) |= ip[i] << (i * 8);
     }
 
     // Succes!

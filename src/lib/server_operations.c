@@ -4,7 +4,7 @@
  * Created:
  *   10/09/2020, 21:21:53
  * Last edited:
- *   11/09/2020, 17:03:16
+ *   11/09/2020, 21:02:53
  * Auto updated?
  *   Yes
  *
@@ -22,7 +22,7 @@
 
 
 /* Tries to enable the given server with the given address on the given TCP-port by sending a SYN-packed with 'enabled' in the payload. Returns 0 if succesfull, or anything else if it wasn't. */
-int server_enable(libnet_t* l, char* errbuf, char* interface, uint16_t source_ip, uint16_t source_port, uint32_t target_ip, uint16_t target_port) {
+int server_enable(libnet_t* l, uint16_t source_ip, uint16_t source_port, uint32_t target_ip, uint16_t target_port) {
     // Define the payload
     char* payload = "enable";
     int payload_size = strlen(payload);
@@ -82,7 +82,7 @@ int server_enable(libnet_t* l, char* errbuf, char* interface, uint16_t source_ip
 
 
 /* Tries to disable the given server with the given address on the given TCP-port by performing a DoS-attack: we send ten TCP-SYN packets with 'disable' in their payload. Returns 0 if succesfull, or anything else if it wasn't. */
-int server_disable(libnet_t* l, char* errbuf, char* interface, uint16_t source_ip, uint16_t source_port, uint32_t target_ip, uint16_t target_port) {
+int server_disable(libnet_t* l, uint16_t source_ip, uint16_t source_port, uint32_t target_ip, uint16_t target_port) {
     // Define the payload
     char* payload = "disable";
     int payload_size = strlen(payload);
@@ -168,15 +168,10 @@ int server_check_status(libnet_t* l, pcap_t* p, char* errbuf, char* interface, u
     }
     
     // Extract the ipv4 and netmask of this interface
-    bpf_u_int32 r_attacker_ip, r_attacker_netmask;
-    if (pcap_lookupnet(interface, &r_attacker_ip, &r_attacker_netmask, errbuf) == -1) {
+    bpf_u_int32 attacker_ip, attacker_netmask;
+    if (pcap_lookupnet(interface, &attacker_ip, &attacker_netmask, errbuf) == -1) {
         fprintf(stderr, "\n[ERROR] Failed to obtain netmask of interface '%s'\n", errbuf);
         return -1;
-    }
-    // Reverse byte order
-    uint32_t attacker_ip = 0;
-    for (int i = 0; i < 4; i++) {
-        attacker_ip |= ((r_attacker_ip >> (24 - i * 8)) & 0xFF) << (i * 8);
     }
 
     // Next, we build the ipv4 header

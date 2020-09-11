@@ -4,7 +4,7 @@
  * Created:
  *   11/09/2020, 17:05:14
  * Last edited:
- *   11/09/2020, 20:39:51
+ *   11/09/2020, 20:59:29
  * Auto updated?
  *   Yes
  *
@@ -164,7 +164,7 @@ int main(int argc, char** argv) {
     }
 
     printf("Attempting to enable server...\n");
-    result = server_enable(l, errbuf, interface, xterm_ip, xterm_port, server_ip, server_port);
+    result = server_enable(l, xterm_ip, xterm_port, server_ip, server_port);
     if (result != 0) {
         return result;
     }

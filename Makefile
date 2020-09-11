@@ -17,6 +17,13 @@ INCL := -I$(LIB)
 
 
 
+### INPUT ###
+ifdef DEBUG
+GCC_ARGS += -g -DDEBUG
+endif
+
+
+
 ### PHONY RULES ###
 
 .PHONY: default exploit server server_enable server_disable check_server all clean
@@ -25,9 +32,9 @@ default: all
 all: exploit server_enable server_disable check_server
 server: server_enable server_disable check_server
 clean:
-	rm -f $(BIN)/exploit
-	rm -f $(BIN)/check_server
+	find $(BIN) -type f -executable -exec rm '{}' \;
 	rm -f $(OBJ)/*.o
+	rm -f $(LIB_OBJ)/*.o
 
 
 
