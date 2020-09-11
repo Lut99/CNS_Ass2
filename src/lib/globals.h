@@ -4,7 +4,7 @@
  * Created:
  *   11/09/2020, 14:57:51
  * Last edited:
- *   11/09/2020, 16:19:49
+ *   11/09/2020, 16:54:10
  * Auto updated?
  *   Yes
  *
@@ -39,7 +39,7 @@
 #define DEFAULT_SERVER_PORT 513
 /* The maximum number of tries to DoS. */
 #define MAX_DOS_TRIES 5
-/* The timeout (in seconds) for the program to wait for the server's packets after the DoS-attack. */
-#define DOS_VERIFY_TIMEOUT 1
+/* The timeout (in milliseconds) for the program to wait for the server's packets after the DoS-attack. */
+#define DOS_VERIFY_TIMEOUT 1000
 
 #endif

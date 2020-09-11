@@ -4,7 +4,7 @@
  * Created:
  *   11/09/2020, 14:42:18
  * Last edited:
- *   11/09/2020, 16:27:45
+ *   11/09/2020, 16:53:46
  * Auto updated?
  *   Yes
  *
@@ -143,15 +143,13 @@ int main(int argc, char** argv) {
         printf("\nServer appears to be OFFLINE (succesfully DoS'd)\n");
     } else if (result == 0) {
         printf("\nServer appears to be ONLINE (not DoS'd)\n");
-    } else if (result != 1) {
+    } else {
         libnet_destroy(l);
-        pcap_close(p);
         return result;
     }
 
     // Done, close the sockets
     libnet_destroy(l);
-    pcap_close(p);
 
     // We did!
     printf("\nDone.\n\n");
