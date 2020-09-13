@@ -4,7 +4,7 @@
  * Created:
  *   10/09/2020, 21:21:53
  * Last edited:
- *   13/09/2020, 17:56:50
+ *   13/09/2020, 17:59:26
  * Auto updated?
  *   Yes
  *
@@ -245,9 +245,15 @@ int probe_tcp_seq(uint32_t* result_seq, uint32_t* result_rel, libnet_t* l, pcap_
             struct pcap_pkthdr header;
             const unsigned char* data = pcap_next(p, &header);
             if (data == NULL) {
-                // Something went wrong, really
-                fprintf(stderr, "[ERROR] Could not receive packet: %s\n", pcap_geterr(p));
-                return EXIT_FAILURE;
+                gettimeofday(&stop, NULL);
+                if (ELAPSED_MS(start, stop) >= PCAP_TIMEOUT) {
+                    fprintf(stderr, "[ERROR] Timeout while waiting for reply of probe-packet %d/%d.\n", i + 1, n);
+                    return EXIT_FAILURE;
+                } else {
+                    // Something went wrong, really
+                    fprintf(stderr, "[ERROR] Could not receive packet: %s\n", pcap_geterr(p));
+                    return EXIT_FAILURE;
+                }
             }
 
             // Try to read the acknowledgement number from it by using our own tcphdr struct
