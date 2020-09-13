@@ -4,7 +4,7 @@
  * Created:
  *   10/09/2020, 21:21:53
  * Last edited:
- *   13/09/2020, 18:01:34
+ *   13/09/2020, 18:02:32
  * Auto updated?
  *   Yes
  *
@@ -240,14 +240,14 @@ int probe_tcp_seq(uint32_t* result_seq, uint32_t* result_rel, libnet_t* l, pcap_
         gettimeofday(&start, NULL);
         gettimeofday(&stop, NULL);
         int succes = 0;
-        while (ELAPSED_MS(start, stop) < PCAP_TIMEOUT) {
+        while (1) {
             // Get a packet from pcap
             struct pcap_pkthdr header;
             const unsigned char* data = pcap_next(p, &header);
             if (data == NULL) {
                 gettimeofday(&stop, NULL);
                 if (ELAPSED_MS(start, stop) >= PCAP_TIMEOUT) {
-                    fprintf(stderr, "[ERROR] Timeout while waiting for reply of probe-packet %d/%d.\n", i + 1, n);
+                    fprintf(stderr, "[ERROR] Timeout while waiting for reply of probe packet %d/%d.\n", i + 1, n);
                     return EXIT_FAILURE;
                 } else {
                     // Something went wrong, really
@@ -287,12 +287,6 @@ int probe_tcp_seq(uint32_t* result_seq, uint32_t* result_rel, libnet_t* l, pcap_
             }
 
             gettimeofday(&stop, NULL);
-        }
-
-        // If we didn't found it in time, let the user know of a timeout
-        if (!succes) {
-            fprintf(stderr, "[ERROR] Timeout while waiting for reply of probe-packet %d/%d.\n", i + 1, n);
-            return EXIT_FAILURE;
         }
     }
 
