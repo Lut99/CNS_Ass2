@@ -4,7 +4,7 @@
  * Created:
  *   13/09/2020, 15:13:48
  * Last edited:
- *   13/09/2020, 21:30:44
+ *   13/09/2020, 21:32:46
  * Auto updated?
  *   Yes
  *
@@ -179,26 +179,10 @@ int main(int argc, char** argv) {
 
     /* Initialize pcap. */
     printf("Initializing pcap on interface '%s'...\n", interface);
-    pcap_t* p = pcap_create(interface, errbuf);
+    pcap_t* p = pcap_open_live(interface, BUFSIZ, 1, DOS_VERIFY_TIMEOUT, errbuf);
     if (p == NULL) {
         libnet_destroy(l);
         fprintf(stderr, "[ERROR] Failed to open device '%s' for packet capture: %s\n", interface, errbuf);
-        return -1;
-    } else if (errbuf[0] != '\0') {
-        // Passed but an error? => must be a warning, then
-        fprintf(stderr, "[WARNING] %s\n", errbuf);
-    }
-    
-    // Set a few options
-    pcap_set_promisc(p, 1);
-    pcap_set_snaplen(p, LIBNET_IPV4_H + LIBNET_TCP_H);
-    pcap_set_timeout(p, PCAP_TIMEOUT);
-
-    // Activate the socket
-    if (pcap_activate(p) != 0) {
-        libnet_destroy(l);
-        pcap_close(p);
-        fprintf(stderr, "[ERROR] Failed to activate pcap interface on device '%s': %s\n", interface, pcap_geterr(p));
         return -1;
     }
 
