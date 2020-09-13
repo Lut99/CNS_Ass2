@@ -4,7 +4,7 @@
  * Created:
  *   10/09/2020, 21:21:53
  * Last edited:
- *   13/09/2020, 15:45:07
+ *   13/09/2020, 15:46:26
  * Auto updated?
  *   Yes
  *
@@ -72,10 +72,9 @@ int create_tcp_syn(libnet_t* l, uint32_t source_ip, uint16_t source_port, uint32
 
 
 /* Tests if the given server is reachable over the given interface on the given TCP-port via TCP. Returns 1 if it is, 0 if it isn't and -1 if an error occured, which is written to the given error buffer. */
-int server_check_status(libnet_t* l, pcap_t* p, char* errbuf, char* interface, uint32_t target_ip, uint16_t target_port) {
+int server_check_status(libnet_t* l, pcap_t* p, uint32_t target_ip, uint16_t target_port) {
     // Extract the ipv4 and netmask of this interface
     uint32_t source_ip = libnet_get_ipaddr4(l);
-    printf("%u.%u.%u.%u\n", IP_FORMAT(source_ip));
 
     // Build the packet
     uint32_t source_port = libnet_get_prand(LIBNET_PRu16);
@@ -91,13 +90,13 @@ int server_check_status(libnet_t* l, pcap_t* p, char* errbuf, char* interface, u
             source_port);
     struct bpf_program filter_program;
     if (pcap_compile(p, &filter_program, filter, 1, PCAP_NETMASK_UNKNOWN) == -1) {
-        fprintf(stderr, "\n[ERROR] Failed to compile filter \"%s\" for interface '%s': %s\n", filter, interface, pcap_geterr(p));
+        fprintf(stderr, "\n[ERROR] Failed to compile filter \"%s\": %s\n", filter, interface, pcap_geterr(p));
         return -1;
     }
 
     // Assign the filter to the interface
     if (pcap_setfilter(p, &filter_program) == -1) {
-        fprintf(stderr, "\n[ERROR] Could not assign filter to interface '%s': %s\n", interface, pcap_geterr(p));
+        fprintf(stderr, "\n[ERROR] Could not assign filter to raw socket: %s\n", interface, pcap_geterr(p));
         return -1;
     }
 

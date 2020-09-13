@@ -4,7 +4,7 @@
  * Created:
  *   11/09/2020, 14:42:18
  * Last edited:
- *   13/09/2020, 13:48:06
+ *   13/09/2020, 15:46:52
  * Auto updated?
  *   Yes
  *
@@ -154,7 +154,7 @@ int main(int argc, char** argv) {
 
     // Then, run the test_server_status function and see if it works
     printf("Checking server status...\n");
-    result = server_check_status(l, p, errbuf, interface, server_ip, server_port);
+    result = server_check_status(l, p, server_ip, server_port);
     if (result == 1) {
         printf("\nServer appears to be OFFLINE (succesfully DoS'd)\n");
     } else if (result == 0) {

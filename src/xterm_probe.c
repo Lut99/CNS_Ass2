@@ -4,7 +4,7 @@
  * Created:
  *   13/09/2020, 15:13:48
  * Last edited:
- *   13/09/2020, 15:40:29
+ *   13/09/2020, 15:47:52
  * Auto updated?
  *   Yes
  *
@@ -138,15 +138,7 @@ int main(int argc, char** argv) {
     int result = parse_cli(&xterm_ip, &xterm_port, &source_port, interface, &n, argc, argv);
     if (result == -2) { return EXIT_SUCCESS; }
     else if (result != 0) { return result; }
-
-    // Acquire our own IPv4-address & mask
-    char errbuf[LIBNET_ERRBUF_SIZE > PCAP_ERRBUF_SIZE ? LIBNET_ERRBUF_SIZE : PCAP_ERRBUF_SIZE];
-    uint32_t source_ip, source_netmask;
-    if (pcap_lookupnet(interface, &source_ip, &source_netmask, errbuf) == -1) {
-        fprintf(stderr, "\n[ERROR] Failed to obtain address & netmask of interface '%s'\n", errbuf);
-        return -1;
-    }
-
+    
 
 
     /* Print a neat header message. */
@@ -154,10 +146,9 @@ int main(int argc, char** argv) {
 
     // Print the options used
     printf("Using options:\n");
-    printf(" - Source IP      : %u.%u.%u.%u\n", IP_FORMAT(source_ip));
-    printf(" - Source port    : %u\n", source_port);
     printf(" - Xterminal IP   : %u.%u.%u.%u\n", IP_FORMAT(xterm_ip));
     printf(" - Xterminal port : %u\n", xterm_port);
+    printf(" - Source port    : %u\n", source_port);
     printf(" - Interface      : '%s'\n", interface);
     printf(" - No. packets    : '%u'\n", n);
     printf("\n");
@@ -167,6 +158,7 @@ int main(int argc, char** argv) {
 
     /* Initialize libnet. */
     printf("Initializing libnet on interface '%s'...\n", interface);
+    char errbuf[LIBNET_ERRBUF_SIZE];
     libnet_t* l = libnet_init(LIBNET_RAW4, interface, errbuf);
     if (l == NULL) {
         fprintf(stderr, "[ERROR] Could not initialize libnet: %s\n\n", errbuf);
@@ -179,6 +171,7 @@ int main(int argc, char** argv) {
     printf("Sending probe packets to %u.%u.%u.%u...\n", IP_FORMAT(xterm_ip));
 
     // First, create the TCP-SYN packet we'll send
+    uint32_t source_ip = libnet_get_ipaddr4(l);
     result = create_tcp_syn(
         l,
         source_ip, source_port,
