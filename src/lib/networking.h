@@ -1,10 +1,10 @@
-/* SERVER OPERATIONS.h
+/* NETWORKING.h
  *   by DukeD1rtfarm3r
  *
  * Created:
  *   11/09/2020, 14:43:14
  * Last edited:
- *   11/09/2020, 20:59:47
+ *   13/09/2020, 15:01:49
  * Auto updated?
  *   Yes
  *
@@ -17,8 +17,8 @@
  *   in exploit.c.
 **/
 
-#ifndef SERVER_OPERATIONS_H
-#define SERVER_OPERATIONS_H
+#ifndef NETWORKING_H
+#define NETWORKING_H
 
 typedef unsigned int uint;
 #include <stdint.h>
@@ -27,11 +27,8 @@ typedef unsigned int uint;
 #include <pcap.h>
 
 
-/* Tries to enable the given server with the given address on the given TCP-port by sending a SYN-packed with 'enabled' in the payload. Returns 0 if succesfull, or anything else if it wasn't. */
-extern int server_enable(libnet_t* l, uint16_t source_ip, uint16_t source_port, uint32_t target_ip, uint16_t target_port);
-
-/* Tries to disable the given server with the given address on the given TCP-port by performing a DoS-attack: we send ten TCP-SYN packets with 'disable' in their payload. Returns 0 if succesfull, or anything else if it wasn't. */
-extern int server_disable(libnet_t* l, uint16_t source_ip, uint16_t source_port, uint32_t target_ip, uint16_t target_port);
+/* Construct a TCP-SYN packet with the given source IP, source port, target IP, target port, given sequence number, given acknoledgement number and given payload on the given libnet raw socket. Returns 0 if it was successful, or anything else if it wasn't. */
+extern int create_tcp_syn(libnet_t* l, uint32_t source_ip, uint16_t source_port, uint32_t target_ip, uint16_t target_port, uint32_t seq_number, uint32_t ack_number, const uint8_t* payload, uint32_t payload_size);
 
 /* Tests if the given server is reachable over the given interface on the given TCP-port via TCP. Returns 1 if it is, 0 if it isn't and -1 if an error occured, which is written to the given error buffer. */
 extern int server_check_status(libnet_t* l, pcap_t* p, char* errbuf, char* interface, uint32_t target_ip, uint16_t target_port);

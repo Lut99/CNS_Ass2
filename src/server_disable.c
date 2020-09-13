@@ -4,7 +4,7 @@
  * Created:
  *   11/09/2020, 17:05:05
  * Last edited:
- *   11/09/2020, 21:13:05
+ *   13/09/2020, 15:02:15
  * Auto updated?
  *   Yes
  *
@@ -18,7 +18,7 @@
 #include <stddef.h>
 
 #include "tools.h"
-#include "server_operations.h"
+#include "networking.h"
 #include "globals.h"
 
 
@@ -164,9 +164,17 @@ int main(int argc, char** argv) {
     }
 
     printf("Attempting to disable server...\n");
-    result = server_disable(l, xterm_ip, xterm_port, server_ip, server_port);
-    if (result != 0) {
-        return result;
+    // Prepare a TCP packet on the wire
+    if (create_tcp_syn(l, xterm_ip, xterm_port, server_ip, server_port, libnet_get_prand(LIBNET_PRu32), libnet_get_prand(LIBNET_PRu32), "disable", 7) != 0) {
+        return EXIT_FAILURE;
+    }
+
+    // Send the packet on its way (x10)
+    for (int i = 0; i < 10; i++) {
+        if (libnet_write(l) == -1) {
+            fprintf(stderr, "[ERROR] Could not send server-enable packet: %s\n", libnet_geterror(l));
+            return EXIT_FAILURE;
+        }
     }
     printf("Done (run 'check_server' to see if it was successful)\n");
 

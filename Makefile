@@ -12,7 +12,7 @@ BIN := bin
 OBJ := $(BIN)/obj
 LIB_OBJ := $(OBJ)/lib
 
-LIBS := $(LIB_OBJ)/server_operations.o $(LIB_OBJ)/tools.o
+LIBS := $(LIB_OBJ)/networking.o $(LIB_OBJ)/tools.o
 INCL := -I$(LIB)
 
 
