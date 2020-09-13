@@ -4,7 +4,7 @@
  * Created:
  *   13/09/2020, 15:13:48
  * Last edited:
- *   13/09/2020, 17:52:49
+ *   13/09/2020, 17:55:55
  * Auto updated?
  *   Yes
  *
@@ -129,9 +129,6 @@ int parse_cli(uint32_t* xterm_ip, uint16_t* xterm_port, uint16_t* source_port, c
 
 /***** ENTRY POINT *****/
 int main(int argc, char** argv) {
-
-
-    
     /* Parse the command line args. */
     // Declare the space to hold the values
     uint32_t xterm_ip = DEFAULT_XTERM_ADDR;

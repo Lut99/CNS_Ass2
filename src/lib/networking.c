@@ -4,7 +4,7 @@
  * Created:
  *   10/09/2020, 21:21:53
  * Last edited:
- *   13/09/2020, 17:53:45
+ *   13/09/2020, 17:56:50
  * Auto updated?
  *   Yes
  *
@@ -231,7 +231,7 @@ int probe_tcp_seq(uint32_t* result_seq, uint32_t* result_rel, libnet_t* l, pcap_
         }
 
         // Send the packet on its way
-        if (libnet_write(l) != 0) {
+        if (libnet_write(l) == -1) {
             fprintf(stderr, "[ERROR] Could not send probe packet: %s\n", libnet_geterror(l));
             return EXIT_FAILURE;
         }
@@ -270,7 +270,7 @@ int probe_tcp_seq(uint32_t* result_seq, uint32_t* result_rel, libnet_t* l, pcap_
                     5000 * i + 1, tcp_h->seq + 1
                 );
                 if (result != 0) { return result; }
-                if (libnet_write(l) != 0) {
+                if (libnet_write(l) == -1) {
                     fprintf(stderr, "[ERROR] Could not send probe RST-packet: %s\n", libnet_geterror(l));
                     return EXIT_FAILURE;
                 }
