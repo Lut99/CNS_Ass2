@@ -4,7 +4,7 @@
  * Created:
  *   10/09/2020, 21:21:53
  * Last edited:
- *   13/09/2020, 15:05:14
+ *   13/09/2020, 15:41:07
  * Auto updated?
  *   Yes
  *
@@ -79,6 +79,7 @@ int server_check_status(libnet_t* l, pcap_t* p, char* errbuf, char* interface, u
         fprintf(stderr, "\n[ERROR] Failed to obtain address & netmask of interface '%s'\n", errbuf);
         return -1;
     }
+    printf("%u.%u.%u.%u\n", IP_FORMAT(source_ip));
 
     // Build the packet
     uint32_t source_port = libnet_get_prand(LIBNET_PRu16);

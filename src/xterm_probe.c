@@ -4,7 +4,7 @@
  * Created:
  *   13/09/2020, 15:13:48
  * Last edited:
- *   13/09/2020, 15:38:10
+ *   13/09/2020, 15:40:29
  * Auto updated?
  *   Yes
  *
@@ -141,7 +141,7 @@ int main(int argc, char** argv) {
 
     // Acquire our own IPv4-address & mask
     char errbuf[LIBNET_ERRBUF_SIZE > PCAP_ERRBUF_SIZE ? LIBNET_ERRBUF_SIZE : PCAP_ERRBUF_SIZE];
-    bpf_u_int32 source_ip, source_netmask;
+    uint32_t source_ip, source_netmask;
     if (pcap_lookupnet(interface, &source_ip, &source_netmask, errbuf) == -1) {
         fprintf(stderr, "\n[ERROR] Failed to obtain address & netmask of interface '%s'\n", errbuf);
         return -1;
