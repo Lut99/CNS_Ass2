@@ -4,7 +4,7 @@
  * Created:
  *   13/09/2020, 17:17:31
  * Last edited:
- *   13/09/2020, 17:35:24
+ *   13/09/2020, 22:05:14
  * Auto updated?
  *   Yes
  *
@@ -23,8 +23,8 @@
  struct ipv4_header {
      /* The version of the IP protocol (first half) and the length of the header (second half) (1 byte, 0). */
      uint8_t version_length;
-     /* The Differentiated Services Code Point (first 6 bits) & Explicit Congestion Notification (last 2 bits), whatever those may be (https://en.wikipedia.org/wiki/IPv4) (1 byte, 1). */
-     uint8_t DSCP_ECN;
+     /* The Type Of Service field (1 byte, 1). */
+     uint8_t type_of_service;
      /* The total length of the IPv4 packet (2 bytes, 2-3). */
      uint16_t total_length;
      /* The IP-ID (2 bytes, 4-5). */
@@ -42,13 +42,16 @@
      /* The destinaton IP-address (4 bytes, 16-19). */
      uint32_t destination;
 };
+/* Shortcut for retrieving the number of bytes (= no. 32-bit words * 4) in an ipv4 header. */
+#define IP_LENGTH(IP_HEADER) \
+    ((((IP_HEADER)->version_length) & 0x0F) * 4)
 
 /* Header for TCP. */
  struct tcp_header {
     /* The source port (2 bytes, 0-1). */
     uint16_t source;
     /* The destination port (2 bytes, 2-3). */
-    uint16_t destination;
+    uint16_t dest;
     /* The sequence number (4 bytes, 4-7). */
     uint32_t seq;
     /* The acknowledgement number (4 bytes, 8-11). */

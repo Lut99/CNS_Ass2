@@ -32,7 +32,7 @@ default: all
 all: exploit server xterm_probe
 server: server_enable server_disable check_server
 clean:
-	find $(BIN) -type f -executable -exec rm '{}' \;
+	-find $(BIN) -type f -executable -exec rm '{}' \;
 	rm -f $(OBJ)/*.o
 	rm -f $(LIB_OBJ)/*.o
 

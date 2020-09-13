@@ -4,7 +4,7 @@
  * Created:
  *   10/09/2020, 21:21:53
  * Last edited:
- *   13/09/2020, 21:37:10
+ *   13/09/2020, 22:23:20
  * Auto updated?
  *   Yes
  *
@@ -209,17 +209,15 @@ int probe_tcp_seq(uint32_t* result_seq, uint32_t* result_rel, libnet_t* l, pcap_
     }
     
     // Then, loop to do each probe
-    libnet_ptag_t tcp_syn = 0;
-    libnet_ptag_t ipv4_syn = 0;
-    libnet_ptag_t tcp_rst = 0;
-    libnet_ptag_t ipv4_rst = 0;
+    libnet_ptag_t tcp = 0;
+    libnet_ptag_t ipv4 = 0;
     struct timeval start, stop;
     for (uint32_t i = 0; i < n; i++) {
         printf("Executing probe (%d/%d)...\n", i + 1, n);
 
         // Create the TCP-SYN packet that we'll use to probe
         int result = create_tcp_syn(
-            &tcp_syn, &ipv4_syn,
+            &tcp, &ipv4,
             l,
             source_ip, source_port,
             target_ip, target_port,
@@ -256,13 +254,12 @@ int probe_tcp_seq(uint32_t* result_seq, uint32_t* result_rel, libnet_t* l, pcap_
 
             // Try to read the acknowledgement number from it by using our own tcphdr struct
             struct ipv4_header* ipv4_h = (struct ipv4_header*) (data + LIBNET_ETH_H);
-            printf("Size of IP header: %u\n", ipv4_h->version_length & 0x0F);
-            struct tcp_header* tcp_h = (struct tcp_header*) (data + (ipv4_h->version_length & 0x0F));
-            printf("SEQ: %u, ACK: %u\n", tcp_h->seq, tcp_h->ack);
-            if (tcp_h->ack == 5000 * i + 1) {
-                printf("Test\n");
+            struct tcp_header* tcp_h = (struct tcp_header*) (data + LIBNET_ETH_H + IP_LENGTH(ipv4_h));
+            uint32_t ack = ntohl(tcp_h->ack);
+            if (ack == 5000 * i + 1) {
                 // It's the correct packet! Add the sequence number to our list
-                result_seq[i] = tcp_h->seq;
+                uint32_t seq = ntohl(tcp_h->seq);
+                result_seq[i] = seq;
                 // Also compute the relative number if we're advanced enough
                 if (i > 0) {
                     result_rel[i - 1] = result_seq[i] - result_seq[i - 1];
@@ -270,11 +267,11 @@ int probe_tcp_seq(uint32_t* result_seq, uint32_t* result_rel, libnet_t* l, pcap_
 
                 // Send a RST-packet to the target, finishing this probe
                 result = create_tcp_rst(
-                    &tcp_rst, &ipv4_rst,
+                    &tcp, &ipv4,
                     l,
                     source_ip, source_port,
                     target_ip, target_port,
-                    424242, tcp_h->seq + 1
+                    ack + 1, seq + 1
                 );
                 if (result != 0) { return result; }
                 if (libnet_write(l) == -1) {

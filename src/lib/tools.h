@@ -4,7 +4,7 @@
  * Created:
  *   11/09/2020, 14:48:51
  * Last edited:
- *   11/09/2020, 20:18:23
+ *   13/09/2020, 22:18:03
  * Auto updated?
  *   Yes
  *
@@ -24,7 +24,6 @@ int streq(char* s1, char* s2);
 
 /* Converts given string to a 32-bit ip-address. Returns 1 if it was successful, or 0 otherwise. */
 int str_to_ip(uint32_t* result, char* ip_addr);
-
 /* Converts given string to 16-bit number (for, for example, port numbers). Returns 1 if it was successful, or 0 otherwise. */
 int str_to_uint16(uint16_t* result, char* port);
 

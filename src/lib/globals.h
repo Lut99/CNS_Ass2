@@ -4,7 +4,7 @@
  * Created:
  *   11/09/2020, 14:57:51
  * Last edited:
- *   13/09/2020, 17:14:35
+ *   13/09/2020, 22:26:20
  * Auto updated?
  *   Yes
  *
@@ -48,7 +48,9 @@
 #define MAX_DOS_TRIES 5
 /* The timeout (in milliseconds) for the program to wait for the server's packets after the DoS-attack. */
 #define DOS_VERIFY_TIMEOUT 1000
-/* The default timeout for pcap sockets. */
+/* The default timeout before we error. */
 #define PCAP_TIMEOUT 1000
+/* The default timeout for pcap sockets to wait before receiving a packet. */
+#define PCAP_INTERVAL 50
 
 #endif

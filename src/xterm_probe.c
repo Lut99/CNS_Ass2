@@ -4,7 +4,7 @@
  * Created:
  *   13/09/2020, 15:13:48
  * Last edited:
- *   13/09/2020, 21:32:46
+ *   13/09/2020, 22:26:46
  * Auto updated?
  *   Yes
  *
@@ -179,7 +179,7 @@ int main(int argc, char** argv) {
 
     /* Initialize pcap. */
     printf("Initializing pcap on interface '%s'...\n", interface);
-    pcap_t* p = pcap_open_live(interface, BUFSIZ, 1, DOS_VERIFY_TIMEOUT, errbuf);
+    pcap_t* p = pcap_open_live(interface, BUFSIZ, 1, PCAP_INTERVAL, errbuf);
     if (p == NULL) {
         libnet_destroy(l);
         fprintf(stderr, "[ERROR] Failed to open device '%s' for packet capture: %s\n", interface, errbuf);
@@ -220,7 +220,7 @@ int main(int argc, char** argv) {
 
 
     /* Print the result of the probe. */
-    printf("\nResults:");
+    printf("\nResults:\n");
     for (int i = 0; i < n; i++) {
         printf(" - Probe %03d: ACK %u\n", i + 1, result_seq[i]);
         if (i < n - 1) {
