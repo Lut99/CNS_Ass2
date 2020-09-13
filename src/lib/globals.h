@@ -4,7 +4,7 @@
  * Created:
  *   11/09/2020, 14:57:51
  * Last edited:
- *   13/09/2020, 16:23:09
+ *   13/09/2020, 17:14:35
  * Auto updated?
  *   Yes
  *
@@ -23,6 +23,9 @@
 /* Returns the IP-address as 4 8-bit parts, ready to be parsed by a xprintf function. */
 #define IP_FORMAT(ADDR) \
     ((ADDR) & 0xFF), (((ADDR) >> 8) & 0xFF), (((ADDR) >> 16) & 0xFF), (((ADDR) >> 24) & 0xFF)
+/* Returns the time difference (in ms) between two timeval's. */
+#define ELAPSED_MS(START, STOP) \
+    ((((STOP).tv_sec * 1000) + ((STOP).tv_usec / 1000)) - (((START).tv_sec * 1000) + ((START).tv_usec / 1000)))
 
 
 

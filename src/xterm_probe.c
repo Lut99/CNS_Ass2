@@ -4,14 +4,16 @@
  * Created:
  *   13/09/2020, 15:13:48
  * Last edited:
- *   13/09/2020, 16:22:32
+ *   13/09/2020, 17:52:49
  * Auto updated?
  *   Yes
  *
  * Description:
- *   Sends a given number of empty TCP-SYN packets to the xterm to allow
- *   something such as tcpdump to display xterm responses, which let us
- *   analyse its sequence number generation algorithm.
+ *   Sends a given number of empty TCP-SYN packets to the xterm and receives
+ *   the xterm's replies, after which is neatly terminates the connection using
+ *   TCP-RST. Additionally, once all packets are received, it prints the ack's
+ *   received and performs a very simpel analysis showing their relative
+ *   change.
 **/
 
 typedef unsigned int uint;
@@ -20,6 +22,7 @@ typedef unsigned int uint;
 #include <stdint.h>
 #include <libnet.h>
 #include <pcap.h>
+#include <sys/time.h>
 
 #include "globals.h"
 #include "tools.h"
@@ -27,8 +30,8 @@ typedef unsigned int uint;
 
 
 /***** CONSTANTS *****/
-/* The number of packets to send. */
-#define DEFAULT_N_PACKETS 10
+/* The default number of probes to perform. */
+#define DEFAULT_N_PROBES 50
 
 
 
@@ -42,13 +45,15 @@ void print_help(char* executable) {
     printf("\n-p, --xterm-port\tSets the xterminal port that we want to probe on (DEFAULT: %u\n)",
            DEFAULT_RSH_PORT);
     printf("\n-P, --source-port\tSets the source port that we want to receive replies on (DEFAULT: random\n)");
-    printf("\n-n, --number\t\tSets the number of probe packets to send in one go (DEFAULT: %u).\n",
-           DEFAULT_N_PACKETS);
+    printf("\n-d, --device\t\tSets the interface we want to use (DEFAULT: %s).\n",
+           DEFAULT_INTERFACE);
+    printf("\n-n, --number\t\tSets the number of probes to send consecutively (DEFAULT: %u).\n",
+           DEFAULT_N_PROBES);
     printf("\n");
 }
 
 /* Parses the commandline arguments. Returns 0 on success, or an error code if something went wrong. */
-int parse_cli(uint32_t* xterm_ip, uint16_t* xterm_port, uint16_t* source_port, uint16_t* n, int argc, char** argv) {
+int parse_cli(uint32_t* xterm_ip, uint16_t* xterm_port, uint16_t* source_port, char* interface, uint16_t* n, int argc, char** argv) {
     for (int i = 1; i < argc; i++) {
         char* arg = argv[i];
         if (arg[0] == '-') {
@@ -87,6 +92,17 @@ int parse_cli(uint32_t* xterm_ip, uint16_t* xterm_port, uint16_t* source_port, u
                     fprintf(stderr, "[ERROR] Could not parse '%s' as a 16-bit port number.\n", argv[i + 1]);
                     return EXIT_FAILURE;
                 }
+            } else if ((arg[1] == 'd' && arg[2] == '\0') || streq(arg + 1, "-device")) {
+                // xterm ip, so parse the next argument as an ip
+                if (i == argc - 1) {
+                    fprintf(stderr, "[ERROR] Missing value for '%s'.\n", arg);
+                    return -1;
+                }
+                if (strlen(argv[i + 1]) >= MAX_INTERFACE_SIZE) {
+                    fprintf(stderr, "[ERROR] Device name '%s' too long.\n", argv[i + 1]);
+                    return -1;
+                }
+                strcpy(interface, argv[i + 1]);
             } else if ((arg[1] == 'n' && arg[2] == '\0') || streq(arg + 1, "-number")) {
                 // xterm ip, so parse the next argument as an ip
                 if (i == argc - 1) {
@@ -94,7 +110,7 @@ int parse_cli(uint32_t* xterm_ip, uint16_t* xterm_port, uint16_t* source_port, u
                     return -1;
                 }
                 if (!str_to_uint16(n, argv[i + 1])) {
-                    fprintf(stderr, "[ERROR] Could not parse '%s' as the 16-bit number of packets to send.\n", argv[i + 1]);
+                    fprintf(stderr, "[ERROR] Could not parse '%s' as the 16-bit number of probes to send.\n", argv[i + 1]);
                     return EXIT_FAILURE;
                 }
             } else {
@@ -113,17 +129,6 @@ int parse_cli(uint32_t* xterm_ip, uint16_t* xterm_port, uint16_t* source_port, u
 
 /***** ENTRY POINT *****/
 int main(int argc, char** argv) {
-    /* Initialize libnet. */
-    printf("Initializing libnet on interface '%s'...\n", DEFAULT_INTERFACE);
-    char errbuf[LIBNET_ERRBUF_SIZE];
-    libnet_t* l = libnet_init(LIBNET_RAW4, DEFAULT_INTERFACE, errbuf);
-    if (l == NULL) {
-        fprintf(stderr, "[ERROR] Could not initialize libnet: %s\n\n", errbuf);
-        return EXIT_FAILURE;
-    }
-
-    // Also seed libnet
-    libnet_seed_prand(l);
 
 
     
@@ -132,63 +137,121 @@ int main(int argc, char** argv) {
     uint32_t xterm_ip = DEFAULT_XTERM_ADDR;
     uint16_t xterm_port = DEFAULT_RSH_PORT;
     uint16_t source_port = libnet_get_prand(LIBNET_PRu16);
-    uint16_t n = DEFAULT_N_PACKETS;
+    char interface[MAX_INTERFACE_SIZE];
+    strcpy(interface, DEFAULT_INTERFACE);
+    uint16_t n = DEFAULT_N_PROBES;
 
     // Parse the CLI
-    int result = parse_cli(&xterm_ip, &xterm_port, &source_port, &n, argc, argv);
+    int result = parse_cli(&xterm_ip, &xterm_port, &source_port, interface, &n, argc, argv);
     if (result == -2) { return EXIT_SUCCESS; }
     else if (result != 0) { return result; }
     
 
 
     /* Print a neat header message. */
-    printf("\n*** XTERM SYN PROBE ***\n\n");
+    printf("\n*** XTERM SEQ PROBE ***\n\n");
 
-    // Print the options used
-    printf("Using options:\n");
+    
+    
+    /* Initialize libnet. */
+    printf("Initializing libnet on interface '%s'...\n", interface);
+
+    // Initialize the error buffer (which is shared between libnet and pcap, so take the one with the larger buffer size)
+    char errbuf[LIBNET_ERRBUF_SIZE > PCAP_ERRBUF_SIZE ? LIBNET_ERRBUF_SIZE : PCAP_ERRBUF_SIZE];
+    errbuf[0] = '\0';
+
+    // Get the library context
+    libnet_t* l = libnet_init(LIBNET_RAW4, interface, errbuf);
+    if (l == NULL) {
+        libnet_destroy(l);
+        fprintf(stderr, "[ERROR] Could not initialize libnet: %s\n\n", errbuf);
+        return EXIT_FAILURE;
+    } else if (errbuf[0] != '\0') {
+        // Passed but an error? => must be a warning, then
+        fprintf(stderr, "[WARNING] %s\n", errbuf);
+    }
+
+    // Also seed libnet
+    libnet_seed_prand(l);
+
+    // And get the source IP
+    uint32_t source_ip = libnet_get_ipaddr4(l);
+
+
+
+    /* Initialize pcap. */
+    printf("Initializing pcap on interface '%s'...\n", interface);
+    pcap_t* p = pcap_create(interface, errbuf);
+    if (p == NULL) {
+        libnet_destroy(l);
+        fprintf(stderr, "[ERROR] Failed to open device '%s' for packet capture: %s\n", interface, errbuf);
+        return -1;
+    } else if (errbuf[0] != '\0') {
+        // Passed but an error? => must be a warning, then
+        fprintf(stderr, "[WARNING] %s\n", errbuf);
+    }
+    
+    // Set a few options
+    pcap_set_promisc(p, 0);
+    pcap_set_snaplen(p, LIBNET_IPV4_H + LIBNET_TCP_H);
+
+    // Activate the socket
+    if (pcap_activate(p) != 0) {
+        libnet_destroy(l);
+        pcap_close(p);
+        fprintf(stderr, "[ERROR] Failed to activate pcap interface on device '%s': %s\n", interface, pcap_geterr(p));
+        return -1;
+    }
+
+
+
+    /* Print the options used. */
+    printf("\nUsing options:\n");
+    printf(" - Source IP      : %u.%u.%u.%u\n", IP_FORMAT(source_ip));
+    printf(" - Source port    : %u\n", source_port);
     printf(" - Xterminal IP   : %u.%u.%u.%u\n", IP_FORMAT(xterm_ip));
     printf(" - Xterminal port : %u\n", xterm_port);
-    printf(" - Source port    : %u\n", source_port);
-    printf(" - Interface      : '%s'\n", DEFAULT_INTERFACE);
-    printf(" - No. packets    : %u\n", n);
+    printf(" - Interface      : '%s'\n", interface);
+    printf(" - No. probes     : %u\n", n);
     printf("\n");
     fflush(stdout);
 
     
 
-    /* Send the packets. */
-    printf("Sending probe packets to %u.%u.%u.%u...\n", IP_FORMAT(xterm_ip));
-    
-    // Create tags so that each time we simply update the headers rather than complete reset them
-    libnet_ptag_t tcp = 0;
-    libnet_ptag_t ipv4 = 0;
+    /* Begin probing. */
+    uint32_t result_seq[n];
+    uint32_t result_rel[n - 1];
+    result = probe_tcp_seq(
+        result_seq, result_rel,
+        l, p,
+        source_ip, source_port,
+        xterm_ip, xterm_port,
+        n
+    );
+    if (result != 0) {
+        libnet_destroy(l);
+        pcap_close(p);
+        return result;
+    }
 
-    // Loop and run
-    uint32_t source_ip = libnet_get_ipaddr4(l);
-    for (int i = 1; i <= n; i++) {
-        // Update the TCP-SYN packet with a new IP ID and a new, random sequence number
-        result = create_tcp_syn(
-            &tcp, &ipv4,
-            l,
-            source_ip, source_port,
-            xterm_ip, xterm_port,
-            libnet_get_prand(LIBNET_PRu32), 0,
-            NULL, 0
-        );
-        if (result != 0) {
-            return result;
-        }
 
-        // Send it on its way
-        if (libnet_write(l) == -1) {
-            fprintf(stderr, "[ERROR] Could not send probe packet %d/%d: %s\n", i, n, libnet_geterror(l));
-            return EXIT_FAILURE;
+
+    /* Print the result of the probe. */
+    printf("\nResults:");
+    for (int i = 0; i < n; i++) {
+        printf(" - Probe %03d: ACK %u\n", i + 1, result_seq[i]);
+        if (i < n - 1) {
+            printf("      Difference with next: %u\n", result_rel[i]);
         }
     }
-    printf("Done (check 'tcpdump' for any replies)\n");
 
-    // Cleanup
+
+
+    /* Cleanup. */
     libnet_destroy(l);
+    pcap_close(p);
+
+
 
     // Done!
     printf("\nDone.\n\n");
