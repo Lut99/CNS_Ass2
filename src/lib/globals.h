@@ -4,7 +4,7 @@
  * Created:
  *   11/09/2020, 14:57:51
  * Last edited:
- *   13/09/2020, 14:25:38
+ *   13/09/2020, 15:36:17
  * Auto updated?
  *   Yes
  *
@@ -29,6 +29,8 @@
 /***** CONSTANTS *****/
 /* The maximum number of characters (including null-character) in an interface string. */
 #define MAX_INTERFACE_SIZE 8
+/* The default ip-address (as a 32-bit number) of the attacker. */
+#define DEFAULT_SOURCE_ADDR 0x023610AC
 /* The default ip-address (as a 32-bit number) of the xterminal. */
 #define DEFAULT_XTERM_ADDR 0x043610AC
 /* The default ip-address of the server. */
