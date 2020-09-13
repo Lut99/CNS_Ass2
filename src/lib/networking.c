@@ -4,7 +4,7 @@
  * Created:
  *   10/09/2020, 21:21:53
  * Last edited:
- *   13/09/2020, 21:35:30
+ *   13/09/2020, 21:37:10
  * Auto updated?
  *   Yes
  *
@@ -256,6 +256,7 @@ int probe_tcp_seq(uint32_t* result_seq, uint32_t* result_rel, libnet_t* l, pcap_
 
             // Try to read the acknowledgement number from it by using our own tcphdr struct
             struct ipv4_header* ipv4_h = (struct ipv4_header*) (data + LIBNET_ETH_H);
+            printf("Size of IP header: %u\n", ipv4_h->version_length & 0x0F);
             struct tcp_header* tcp_h = (struct tcp_header*) (data + (ipv4_h->version_length & 0x0F));
             printf("SEQ: %u, ACK: %u\n", tcp_h->seq, tcp_h->ack);
             if (tcp_h->ack == 5000 * i + 1) {
