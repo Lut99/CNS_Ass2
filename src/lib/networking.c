@@ -4,7 +4,7 @@
  * Created:
  *   10/09/2020, 21:21:53
  * Last edited:
- *   13/09/2020, 15:46:26
+ *   13/09/2020, 15:49:10
  * Auto updated?
  *   Yes
  *
@@ -90,13 +90,13 @@ int server_check_status(libnet_t* l, pcap_t* p, uint32_t target_ip, uint16_t tar
             source_port);
     struct bpf_program filter_program;
     if (pcap_compile(p, &filter_program, filter, 1, PCAP_NETMASK_UNKNOWN) == -1) {
-        fprintf(stderr, "\n[ERROR] Failed to compile filter \"%s\": %s\n", filter, interface, pcap_geterr(p));
+        fprintf(stderr, "\n[ERROR] Failed to compile filter \"%s\": %s\n", filter, pcap_geterr(p));
         return -1;
     }
 
     // Assign the filter to the interface
     if (pcap_setfilter(p, &filter_program) == -1) {
-        fprintf(stderr, "\n[ERROR] Could not assign filter to raw socket: %s\n", interface, pcap_geterr(p));
+        fprintf(stderr, "\n[ERROR] Could not assign filter to raw socket: %s\n", pcap_geterr(p));
         return -1;
     }
 
