@@ -4,7 +4,7 @@
  * Created:
  *   10/09/2020, 21:21:53
  * Last edited:
- *   13/09/2020, 21:20:52
+ *   13/09/2020, 21:21:37
  * Auto updated?
  *   Yes
  *
@@ -198,8 +198,6 @@ int probe_tcp_seq(uint32_t* result_seq, uint32_t* result_rel, libnet_t* l, pcap_
     sprintf(filter, "(src host %u.%u.%u.%u) && (dst host %u.%u.%u.%u) && (src port %u) && (dst port %u) && (tcp) && ((tcp[13] == 0x14) || (tcp[13] == 0x12))",
             IP_FORMAT(target_ip), IP_FORMAT(source_ip),
             target_port, source_port);
-    printf("%s\n", filter);
-    printf("(src host 172.16.54.4) && (dst host 172.16.54.2) && (src port 514) && (dst port 45298) && (tcp) && ((tcp[13] == 0x14) || (tcp[13] == 0x12))\n");
     struct bpf_program filter_program;
     if (pcap_compile(p, &filter_program, filter, 1, PCAP_NETMASK_UNKNOWN) == -1) {
         fprintf(stderr, "\n[ERROR] Failed to compile filter \"%s\": %s\n", filter, pcap_geterr(p));

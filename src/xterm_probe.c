@@ -4,7 +4,7 @@
  * Created:
  *   13/09/2020, 15:13:48
  * Last edited:
- *   13/09/2020, 17:57:50
+ *   13/09/2020, 21:24:07
  * Auto updated?
  *   Yes
  *
@@ -44,7 +44,7 @@ void print_help(char* executable) {
            IP_FORMAT(DEFAULT_XTERM_ADDR));
     printf("\n-p, --xterm-port\tSets the xterminal port that we want to probe on (DEFAULT: %u\n)",
            DEFAULT_RSH_PORT);
-    printf("\n-P, --source-port\tSets the source port that we want to receive replies on (DEFAULT: random\n)");
+    printf("\n-P, --source-port\tSets the source port that we want to receive replies on. Set to 0 to choose a random port (DEFAULT: 0\n)");
     printf("\n-d, --device\t\tSets the interface we want to use (DEFAULT: %s).\n",
            DEFAULT_INTERFACE);
     printf("\n-n, --number\t\tSets the number of probes to send consecutively (DEFAULT: %u).\n",
@@ -133,7 +133,7 @@ int main(int argc, char** argv) {
     // Declare the space to hold the values
     uint32_t xterm_ip = DEFAULT_XTERM_ADDR;
     uint16_t xterm_port = DEFAULT_RSH_PORT;
-    uint16_t source_port = libnet_get_prand(LIBNET_PRu16);
+    uint16_t source_port = 0;
     char interface[MAX_INTERFACE_SIZE];
     strcpy(interface, DEFAULT_INTERFACE);
     uint16_t n = DEFAULT_N_PROBES;
@@ -171,8 +171,9 @@ int main(int argc, char** argv) {
     // Also seed libnet
     libnet_seed_prand(l);
 
-    // And get the source IP
+    // And get the source IP & source port
     uint32_t source_ip = libnet_get_ipaddr4(l);
+    if (source_port == 0) { source_port = libnet_get_prand(LIBNET_PRu16); }
 
 
 
