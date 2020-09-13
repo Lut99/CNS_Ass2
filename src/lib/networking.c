@@ -4,7 +4,7 @@
  * Created:
  *   10/09/2020, 21:21:53
  * Last edited:
- *   13/09/2020, 21:30:08
+ *   13/09/2020, 21:35:30
  * Auto updated?
  *   Yes
  *
@@ -259,6 +259,7 @@ int probe_tcp_seq(uint32_t* result_seq, uint32_t* result_rel, libnet_t* l, pcap_
             struct tcp_header* tcp_h = (struct tcp_header*) (data + (ipv4_h->version_length & 0x0F));
             printf("SEQ: %u, ACK: %u\n", tcp_h->seq, tcp_h->ack);
             if (tcp_h->ack == 5000 * i + 1) {
+                printf("Test\n");
                 // It's the correct packet! Add the sequence number to our list
                 result_seq[i] = tcp_h->seq;
                 // Also compute the relative number if we're advanced enough
