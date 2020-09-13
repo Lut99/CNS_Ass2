@@ -4,7 +4,7 @@
  * Created:
  *   13/09/2020, 15:13:48
  * Last edited:
- *   13/09/2020, 15:47:52
+ *   13/09/2020, 16:09:05
  * Auto updated?
  *   Yes
  *
@@ -150,7 +150,7 @@ int main(int argc, char** argv) {
     printf(" - Xterminal port : %u\n", xterm_port);
     printf(" - Source port    : %u\n", source_port);
     printf(" - Interface      : '%s'\n", interface);
-    printf(" - No. packets    : '%u'\n", n);
+    printf(" - No. packets    : %u\n", n);
     printf("\n");
     fflush(stdout);
 
@@ -169,22 +169,28 @@ int main(int argc, char** argv) {
 
     /* Send the packets. */
     printf("Sending probe packets to %u.%u.%u.%u...\n", IP_FORMAT(xterm_ip));
+    
+    // Create tags so that each time we simply update the headers rather than complete reset them
+    libnet_ptag_t tcp = 0;
+    libnet_ptag_t ipv4 = 0;
 
-    // First, create the TCP-SYN packet we'll send
+    // Loop and run
     uint32_t source_ip = libnet_get_ipaddr4(l);
-    result = create_tcp_syn(
-        l,
-        source_ip, source_port,
-        xterm_ip, xterm_port,
-        0, 0,
-        NULL, 0
-    );
-    if (result != 0) {
-        return result;
-    }
-
-    // Next, send it the specified number of time
     for (int i = 1; i <= n; i++) {
+        // Update the TCP-SYN packet with a new IP ID and a new, random sequence number
+        result = create_tcp_syn(
+            &tcp, &ipv4,
+            l,
+            source_ip, source_port,
+            xterm_ip, xterm_port,
+            libnet_get_prand(LIBNET_PRu32), 0,
+            NULL, 0
+        );
+        if (result != 0) {
+            return result;
+        }
+
+        // Send it on its way
         if (libnet_write(l) == -1) {
             fprintf(stderr, "[ERROR] Could not send probe packet %d/%d: %s\n", i, n, libnet_geterror(l));
             return EXIT_FAILURE;

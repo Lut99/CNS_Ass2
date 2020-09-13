@@ -4,7 +4,7 @@
  * Created:
  *   10/09/2020, 21:21:53
  * Last edited:
- *   13/09/2020, 15:49:10
+ *   13/09/2020, 16:08:11
  * Auto updated?
  *   Yes
  *
@@ -21,46 +21,52 @@
 #include "networking.h"
 
 
-/* Construct a TCP-SYN packet with the given source IP, source port, target IP, target port, given sequence number, given acknoledgement number and given payload on the given libnet raw socket. Returns 0 if it was successful, or anything else if it wasn't. */
-int create_tcp_syn(libnet_t* l, uint32_t source_ip, uint16_t source_port, uint32_t target_ip, uint16_t target_port, uint32_t seq_number, uint32_t ack_number, const uint8_t* payload, uint32_t payload_size) {
-    /* First, build the TCP header. */
-    libnet_ptag_t tcp = libnet_build_tcp(
+/* Construct a TCP-SYN packet with the given source IP, source port, target IP, target port, given sequence number, given acknoledgement number and given payload on the given libnet raw socket. The 'tcp' and 'ipv4' arguments will contain the resulting ptags of libnet, unless the pointers are NULL, in which case local values are used. Note that if they point to anything non-zero, libnet will overwrite existing packets rather than creating new ones. Returns 0 if it was successful, or anything else if it wasn't. */
+int create_tcp_syn(libnet_ptag_t* tcp, libnet_ptag_t* ipv4, libnet_t* l, uint32_t source_ip, uint16_t source_port, uint32_t target_ip, uint16_t target_port, uint32_t seq_number, uint32_t ack_number, const uint8_t* payload, uint32_t payload_size) {
+    /* Check if we need to use local tcp & ipv4. */
+    libnet_ptag_t local_tcp = 0;
+    libnet_ptag_t local_ipv4 = 0;
+    if (tcp == NULL) { tcp = &local_tcp; }
+    if (ipv4 == NULL) { ipv4 = &local_ipv4; }
+    
+    /* Build the TCP header. */
+    *tcp = libnet_build_tcp(
         source_port,
         target_port,
         seq_number,
         ack_number,
         TH_SYN,                         // We use only the SYN control
-        7,                              // The window size (pretty arbitrary)
+        4096,                           // The window size (pretty arbitrary)
         0,                              // The checksum will be handled automatically by libnet
         0,                              // The urgent pointer - zero, as it's not urgent
         LIBNET_TCP_H + payload_size,
         payload,
         payload_size,
         l,
-        0                               // We want to build a new header rather than modify one
+        *tcp
     );
-    if (tcp == -1) {
+    if (*tcp == -1) {
         fprintf(stderr, "[ERROR] Could not build TCP header: %s\n", libnet_geterror(l));
         return -1;
     }
 
     /* Then, build the IPv4 header. */
-    libnet_ptag_t ipv4 = libnet_build_ipv4(
+    *ipv4 = libnet_build_ipv4(
         LIBNET_IPV4_H + LIBNET_TCP_H + payload_size,
-        0,                                  // Neutral Terms-of-Service
-        libnet_get_prand(LIBNET_PRu16),     // Arbitrary IP ID
-        0,                                  // No fragment offset
-        127,                                // The time-to-live on the webs
-        IPPROTO_TCP,                        // The next protocol is our TCP
-        0,                                  // Autofill the checksum
+        0,                                              // Neutral Terms-of-Service
+        libnet_get_prand(LIBNET_PRu16),                 // Arbitrary IP ID
+        0,                                              // No fragment offset
+        127,                                            // The time-to-live on the webs
+        IPPROTO_TCP,                                    // The next protocol is our TCP
+        0,                                              // Autofill the checksum
         source_ip,
         target_ip,
-        NULL,                               // No payload, as libpcap will link these together
-        0,                                  // Payload size is therefore also NULL
+        NULL,                                           // No payload, as libpcap will link these together
+        0,                                              // Payload size is therefore also NULL
         l,
-        0                                   // We want to build a new header rather than modify one
+        *ipv4
     );
-    if (ipv4 == -1) {
+    if (*ipv4 == -1) {
         fprintf(stderr, "[ERROR] Could not build IPv4 header: %s\n", libnet_geterror(l));
         return -1;
     }
@@ -78,8 +84,16 @@ int server_check_status(libnet_t* l, pcap_t* p, uint32_t target_ip, uint16_t tar
 
     // Build the packet
     uint32_t source_port = libnet_get_prand(LIBNET_PRu16);
-    if (create_tcp_syn(l, source_ip, source_port, target_ip, target_port, libnet_get_prand(LIBNET_PRu32), libnet_get_prand(LIBNET_PRu32), NULL, 0) != 0) {
-        return -1;
+    int result = create_tcp_syn(
+        NULL, NULL,
+        l,
+        source_ip, source_port,
+        target_ip, target_port,
+        libnet_get_prand(LIBNET_PRu32), libnet_get_prand(LIBNET_PRu32),
+        NULL, 0
+    );
+    if (result != 0) {
+        return result;
     }
 
     // Compile the filter used for the interface

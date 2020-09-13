@@ -4,7 +4,7 @@
  * Created:
  *   11/09/2020, 17:05:14
  * Last edited:
- *   13/09/2020, 15:10:31
+ *   13/09/2020, 16:02:47
  * Auto updated?
  *   Yes
  *
@@ -166,6 +166,7 @@ int main(int argc, char** argv) {
     printf("Attempting to enable server...\n");
     // Prepare a TCP packet on the wire
     result = create_tcp_syn(
+        NULL, NULL,
         l,
         xterm_ip, xterm_port,
         server_ip, server_port,
