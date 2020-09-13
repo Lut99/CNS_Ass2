@@ -4,7 +4,7 @@
  * Created:
  *   10/09/2020, 21:21:53
  * Last edited:
- *   13/09/2020, 15:41:07
+ *   13/09/2020, 15:45:07
  * Auto updated?
  *   Yes
  *
@@ -74,11 +74,7 @@ int create_tcp_syn(libnet_t* l, uint32_t source_ip, uint16_t source_port, uint32
 /* Tests if the given server is reachable over the given interface on the given TCP-port via TCP. Returns 1 if it is, 0 if it isn't and -1 if an error occured, which is written to the given error buffer. */
 int server_check_status(libnet_t* l, pcap_t* p, char* errbuf, char* interface, uint32_t target_ip, uint16_t target_port) {
     // Extract the ipv4 and netmask of this interface
-    bpf_u_int32 source_ip, source_netmask;
-    if (pcap_lookupnet(interface, &source_ip, &source_netmask, errbuf) == -1) {
-        fprintf(stderr, "\n[ERROR] Failed to obtain address & netmask of interface '%s'\n", errbuf);
-        return -1;
-    }
+    uint32_t source_ip = libnet_get_ipaddr4(l);
     printf("%u.%u.%u.%u\n", IP_FORMAT(source_ip));
 
     // Build the packet
