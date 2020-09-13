@@ -4,7 +4,7 @@
  * Created:
  *   10/09/2020, 21:21:53
  * Last edited:
- *   13/09/2020, 21:21:37
+ *   13/09/2020, 21:26:52
  * Auto updated?
  *   Yes
  *
@@ -238,7 +238,6 @@ int probe_tcp_seq(uint32_t* result_seq, uint32_t* result_rel, libnet_t* l, pcap_
 
         // Wait until we received in on the interface. We will identify it based on its ACK-number
         gettimeofday(&start, NULL);
-        gettimeofday(&stop, NULL);
         while (1) {
             // Get a packet from pcap
             struct pcap_pkthdr header;
@@ -249,9 +248,9 @@ int probe_tcp_seq(uint32_t* result_seq, uint32_t* result_rel, libnet_t* l, pcap_
                     fprintf(stderr, "[ERROR] Timeout while waiting for reply of probe packet %d/%d.\n", i + 1, n);
                     return EXIT_FAILURE;
                 } else {
-                    // Something went wrong, really
+                    // Something went wrong, really, so try again
                     fprintf(stderr, "[ERROR] Could not receive packet: %s\n", pcap_geterr(p));
-                    return EXIT_FAILURE;
+                    continue;
                 }
             }
 
