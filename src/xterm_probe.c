@@ -4,7 +4,7 @@
  * Created:
  *   13/09/2020, 15:13:48
  * Last edited:
- *   13/09/2020, 21:24:07
+ *   13/09/2020, 21:30:44
  * Auto updated?
  *   Yes
  *
@@ -190,7 +190,7 @@ int main(int argc, char** argv) {
     }
     
     // Set a few options
-    pcap_set_promisc(p, 0);
+    pcap_set_promisc(p, 1);
     pcap_set_snaplen(p, LIBNET_IPV4_H + LIBNET_TCP_H);
     pcap_set_timeout(p, PCAP_TIMEOUT);
 

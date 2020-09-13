@@ -4,7 +4,7 @@
  * Created:
  *   10/09/2020, 21:21:53
  * Last edited:
- *   13/09/2020, 21:29:28
+ *   13/09/2020, 21:30:08
  * Auto updated?
  *   Yes
  *
@@ -241,7 +241,7 @@ int probe_tcp_seq(uint32_t* result_seq, uint32_t* result_rel, libnet_t* l, pcap_
         while (1) {
             // Get a packet from pcap
             struct pcap_pkthdr header;
-            unsigned char* data = pcap_next(p, &header);
+            const unsigned char* data = pcap_next(p, &header);
             if (data == NULL) {
                 gettimeofday(&stop, NULL);
                 if (ELAPSED_MS(start, stop) >= PCAP_TIMEOUT) {
