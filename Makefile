@@ -26,10 +26,10 @@ endif
 
 ### PHONY RULES ###
 
-.PHONY: default exploit server server_enable server_disable check_server all clean
+.PHONY: default exploit server server_enable server_disable check_server xterm_probe all clean
 default: all
 
-all: exploit server_enable server_disable check_server
+all: exploit server xterm_probe
 server: server_enable server_disable check_server
 clean:
 	find $(BIN) -type f -executable -exec rm '{}' \;
@@ -77,3 +77,8 @@ server_disable: $(BIN)/server_disable
 $(BIN)/check_server: $(OBJ)/check_server.o $(LIBS) | $(BIN)
 	$(GCC) $(GCC_ARGS) -o $@ $^ $(EXT_LIBS)
 check_server: $(BIN)/check_server
+
+# The xterminal prober
+$(BIN)/xterm_probe: $(OBJ)/xterm_probe.o $(LIBS) | $(BIN)
+	$(GCC) $(GCC_ARGS) -o $@ $^ $(EXT_LIBS)
+xterm_probe: $(BIN)/xterm_probe
