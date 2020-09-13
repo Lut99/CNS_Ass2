@@ -4,7 +4,7 @@
  * Created:
  *   13/09/2020, 15:13:48
  * Last edited:
- *   13/09/2020, 16:09:05
+ *   13/09/2020, 16:13:45
  * Auto updated?
  *   Yes
  *
@@ -41,15 +41,13 @@ void print_help(char* executable) {
            IP_FORMAT(DEFAULT_XTERM_ADDR));
     printf("\n-p, --xterm-port\tSets the xterminal port that we want to probe on (DEFAULT: random\n)");
     printf("\n-P, --source-port\tSets the source port that we want to receive replies on (DEFAULT: random\n)");
-    printf("\n-d, --device\t\tSets the interface we want to use (DEFAULT: %s).\n",
-           DEFAULT_INTERFACE);
     printf("\n-n, --number\t\tSets the number of probe packets to send in one go (DEFAULT: %u).\n",
            DEFAULT_N_PACKETS);
     printf("\n");
 }
 
 /* Parses the commandline arguments. Returns 0 on success, or an error code if something went wrong. */
-int parse_cli(uint32_t* xterm_ip, uint16_t* xterm_port, uint16_t* source_port, char* interface, uint16_t* n, int argc, char** argv) {
+int parse_cli(uint32_t* xterm_ip, uint16_t* xterm_port, uint16_t* source_port, uint16_t* n, int argc, char** argv) {
     for (int i = 1; i < argc; i++) {
         char* arg = argv[i];
         if (arg[0] == '-') {
@@ -88,17 +86,6 @@ int parse_cli(uint32_t* xterm_ip, uint16_t* xterm_port, uint16_t* source_port, c
                     fprintf(stderr, "[ERROR] Could not parse '%s' as a 16-bit port number.\n", argv[i + 1]);
                     return EXIT_FAILURE;
                 }
-            } else if ((arg[1] == 'd' && arg[2] == '\0') || streq(arg + 1, "-device")) {
-                // xterm ip, so parse the next argument as an ip
-                if (i == argc - 1) {
-                    fprintf(stderr, "[ERROR] Missing value for '%s'.\n", arg);
-                    return -1;
-                }
-                if (strlen(argv[i + 1]) >= MAX_INTERFACE_SIZE) {
-                    fprintf(stderr, "[ERROR] Device name '%s' too long.\n", argv[i + 1]);
-                    return -1;
-                }
-                strcpy(interface, argv[i + 1]);
             } else if ((arg[1] == 'n' && arg[2] == '\0') || streq(arg + 1, "-number")) {
                 // xterm ip, so parse the next argument as an ip
                 if (i == argc - 1) {
@@ -125,17 +112,29 @@ int parse_cli(uint32_t* xterm_ip, uint16_t* xterm_port, uint16_t* source_port, c
 
 /***** ENTRY POINT *****/
 int main(int argc, char** argv) {
+    /* Initialize libnet. */
+    printf("Initializing libnet on interface '%s'...\n", DEFAULT_INTERFACE);
+    char errbuf[LIBNET_ERRBUF_SIZE];
+    libnet_t* l = libnet_init(LIBNET_RAW4, DEFAULT_INTERFACE, errbuf);
+    if (l == NULL) {
+        fprintf(stderr, "[ERROR] Could not initialize libnet: %s\n\n", errbuf);
+        return EXIT_FAILURE;
+    }
+
+    // Also seed libnet
+    libnet_seed_prand(l);
+
+
+    
     /* Parse the command line args. */
     // Declare the space to hold the values
     uint32_t xterm_ip = DEFAULT_XTERM_ADDR;
     uint16_t xterm_port = libnet_get_prand(LIBNET_PRu16);
     uint16_t source_port = libnet_get_prand(LIBNET_PRu16);
-    char interface[MAX_INTERFACE_SIZE];
-    strcpy(interface, DEFAULT_INTERFACE);
     uint16_t n = DEFAULT_N_PACKETS;
 
     // Parse the CLI
-    int result = parse_cli(&xterm_ip, &xterm_port, &source_port, interface, &n, argc, argv);
+    int result = parse_cli(&xterm_ip, &xterm_port, &source_port, &n, argc, argv);
     if (result == -2) { return EXIT_SUCCESS; }
     else if (result != 0) { return result; }
     
@@ -149,21 +148,10 @@ int main(int argc, char** argv) {
     printf(" - Xterminal IP   : %u.%u.%u.%u\n", IP_FORMAT(xterm_ip));
     printf(" - Xterminal port : %u\n", xterm_port);
     printf(" - Source port    : %u\n", source_port);
-    printf(" - Interface      : '%s'\n", interface);
+    printf(" - Interface      : '%s'\n", DEFAULT_INTERFACE);
     printf(" - No. packets    : %u\n", n);
     printf("\n");
     fflush(stdout);
-
-
-
-    /* Initialize libnet. */
-    printf("Initializing libnet on interface '%s'...\n", interface);
-    char errbuf[LIBNET_ERRBUF_SIZE];
-    libnet_t* l = libnet_init(LIBNET_RAW4, interface, errbuf);
-    if (l == NULL) {
-        fprintf(stderr, "[ERROR] Could not initialize libnet: %s\n\n", errbuf);
-        return EXIT_FAILURE;
-    }
 
     
 
