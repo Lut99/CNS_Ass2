@@ -4,7 +4,7 @@
  * Created:
  *   13/09/2020, 15:13:48
  * Last edited:
- *   13/09/2020, 16:13:45
+ *   13/09/2020, 16:22:32
  * Auto updated?
  *   Yes
  *
@@ -39,7 +39,8 @@ void print_help(char* executable) {
     printf("\n-h, --help\t\tShows this help message.\n");
     printf("\n-i, --xterm-ip\t\tSets the xterminal IPv4-address that we want to use for the probing (DEFAULT: %u.%u.%u.%u).\n",
            IP_FORMAT(DEFAULT_XTERM_ADDR));
-    printf("\n-p, --xterm-port\tSets the xterminal port that we want to probe on (DEFAULT: random\n)");
+    printf("\n-p, --xterm-port\tSets the xterminal port that we want to probe on (DEFAULT: %u\n)",
+           DEFAULT_RSH_PORT);
     printf("\n-P, --source-port\tSets the source port that we want to receive replies on (DEFAULT: random\n)");
     printf("\n-n, --number\t\tSets the number of probe packets to send in one go (DEFAULT: %u).\n",
            DEFAULT_N_PACKETS);
@@ -129,7 +130,7 @@ int main(int argc, char** argv) {
     /* Parse the command line args. */
     // Declare the space to hold the values
     uint32_t xterm_ip = DEFAULT_XTERM_ADDR;
-    uint16_t xterm_port = libnet_get_prand(LIBNET_PRu16);
+    uint16_t xterm_port = DEFAULT_RSH_PORT;
     uint16_t source_port = libnet_get_prand(LIBNET_PRu16);
     uint16_t n = DEFAULT_N_PACKETS;
 

@@ -4,7 +4,7 @@
  * Created:
  *   11/09/2020, 14:57:51
  * Last edited:
- *   13/09/2020, 15:36:17
+ *   13/09/2020, 16:23:09
  * Auto updated?
  *   Yes
  *
@@ -39,6 +39,8 @@
 #define DEFAULT_INTERFACE "eth0"
 /* The default destination port used for DoS'ing the server. */
 #define DEFAULT_SERVER_PORT 513
+/* The default port used on the Xterminal to communicate with rsh. */
+#define DEFAULT_RSH_PORT 514
 /* The maximum number of tries to DoS. */
 #define MAX_DOS_TRIES 5
 /* The timeout (in milliseconds) for the program to wait for the server's packets after the DoS-attack. */
