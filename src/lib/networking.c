@@ -4,7 +4,7 @@
  * Created:
  *   10/09/2020, 21:21:53
  * Last edited:
- *   13/09/2020, 18:02:32
+ *   13/09/2020, 18:03:43
  * Auto updated?
  *   Yes
  *
@@ -239,7 +239,6 @@ int probe_tcp_seq(uint32_t* result_seq, uint32_t* result_rel, libnet_t* l, pcap_
         // Wait until we received in on the interface. We will identify it based on its ACK-number
         gettimeofday(&start, NULL);
         gettimeofday(&stop, NULL);
-        int succes = 0;
         while (1) {
             // Get a packet from pcap
             struct pcap_pkthdr header;
@@ -273,7 +272,7 @@ int probe_tcp_seq(uint32_t* result_seq, uint32_t* result_rel, libnet_t* l, pcap_
                     l,
                     source_ip, source_port,
                     target_ip, target_port,
-                    5000 * i + 1, tcp_h->seq + 1
+                    424242, tcp_h->seq + 1
                 );
                 if (result != 0) { return result; }
                 if (libnet_write(l) == -1) {
@@ -282,7 +281,6 @@ int probe_tcp_seq(uint32_t* result_seq, uint32_t* result_rel, libnet_t* l, pcap_
                 }
 
                 // Done, break
-                succes = 1;
                 break;
             }
 
