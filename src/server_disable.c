@@ -4,7 +4,7 @@
  * Created:
  *   11/09/2020, 17:05:05
  * Last edited:
- *   13/09/2020, 15:02:15
+ *   13/09/2020, 15:08:38
  * Auto updated?
  *   Yes
  *
@@ -165,8 +165,15 @@ int main(int argc, char** argv) {
 
     printf("Attempting to disable server...\n");
     // Prepare a TCP packet on the wire
-    if (create_tcp_syn(l, xterm_ip, xterm_port, server_ip, server_port, libnet_get_prand(LIBNET_PRu32), libnet_get_prand(LIBNET_PRu32), "disable", 7) != 0) {
-        return EXIT_FAILURE;
+    int result = create_tcp_syn(
+        l,
+        xterm_ip, xterm_port,
+        server_ip, server_port,
+        libnet_get_prand(LIBNET_PRu32), libnet_get_prand(LIBNET_PRu32),
+        (const uint8_t*) "disable", 7
+    );
+    if (result != 0) {
+        return result;
     }
 
     // Send the packet on its way (x10)
