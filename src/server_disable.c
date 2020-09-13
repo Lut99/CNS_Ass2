@@ -4,7 +4,7 @@
  * Created:
  *   11/09/2020, 17:05:05
  * Last edited:
- *   13/09/2020, 15:08:38
+ *   13/09/2020, 15:10:34
  * Auto updated?
  *   Yes
  *
@@ -165,7 +165,7 @@ int main(int argc, char** argv) {
 
     printf("Attempting to disable server...\n");
     // Prepare a TCP packet on the wire
-    int result = create_tcp_syn(
+    result = create_tcp_syn(
         l,
         xterm_ip, xterm_port,
         server_ip, server_port,
