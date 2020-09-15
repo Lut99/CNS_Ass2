@@ -1,5 +1,7 @@
 # Everything in bin
-bin/*
+bin
+
+netkit-rsh-0.17
 
 # Prerequisites
 *.d

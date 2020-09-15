@@ -4,7 +4,7 @@
  * Created:
  *   13/09/2020, 15:13:48
  * Last edited:
- *   13/09/2020, 22:26:46
+ *   15/09/2020, 16:50:43
  * Auto updated?
  *   Yes
  *
@@ -202,10 +202,9 @@ int main(int argc, char** argv) {
     
 
     /* Begin probing. */
-    uint32_t result_seq[n];
-    uint32_t result_rel[n - 1];
+    uint32_t results[n];
     result = probe_tcp_seq(
-        result_seq, result_rel,
+        results,
         l, p,
         source_ip, source_port,
         xterm_ip, xterm_port,
@@ -221,10 +220,15 @@ int main(int argc, char** argv) {
 
     /* Print the result of the probe. */
     printf("\nResults:\n");
+    uint32_t dseqs[n - 1];
     for (int i = 0; i < n; i++) {
-        printf(" - Probe %03d: ACK %u\n", i + 1, result_seq[i]);
+        printf(" - Probe %03d: ACK %u\n", i + 1, results[i]);
         if (i < n - 1) {
-            printf("      Difference with next: %u\n", result_rel[i]);
+            dseqs[i] = results[i + 1] - results[i];
+            printf("      Difference with next     : %u\n", dseqs[i]);
+            if (i > 0) {
+                printf("      Difference in difference : %u\n", dseqs[i] - dseqs[i - 1]);
+            }
         }
     }
 

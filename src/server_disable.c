@@ -4,7 +4,7 @@
  * Created:
  *   11/09/2020, 17:05:05
  * Last edited:
- *   13/09/2020, 16:02:51
+ *   15/09/2020, 17:55:49
  * Auto updated?
  *   Yes
  *
@@ -165,9 +165,9 @@ int main(int argc, char** argv) {
 
     printf("Attempting to disable server...\n");
     // Prepare a TCP packet on the wire
-    result = create_tcp_syn(
+    result = create_tcp_pkt(
         NULL, NULL,
-        l,
+        l, TH_SYN,
         xterm_ip, xterm_port,
         server_ip, server_port,
         libnet_get_prand(LIBNET_PRu32), libnet_get_prand(LIBNET_PRu32),

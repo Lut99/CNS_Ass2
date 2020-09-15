@@ -1,0 +1,9 @@
+The steps I've taken:
+
+
+ACK SYN PROBE
+I discovered that the TCP SYN generator for my VM increments the SYN for each connection with the previous increase plus 11111111.
+This I discovered by sending 10 TCP requests in a rapid succession to the xterminal, and then reading their returned SYNs and printing
+the difference between two consequtive SYNs. These seemed to follow a pattern, so by printing the difference in the differences
+I discovered the constant number 11111111. The solution, then, is to probe the xterminal twice, taking the difference in sequence
+numbers and then using that plus 11111111 for every time we make a connection.
