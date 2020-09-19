@@ -7,3 +7,5 @@ This I discovered by sending 10 TCP requests in a rapid succession to the xtermi
 the difference between two consequtive SYNs. These seemed to follow a pattern, so by printing the difference in the differences
 I discovered the constant number 11111111. The solution, then, is to probe the xterminal twice, taking the difference in sequence
 numbers and then using that plus 11111111 for every time we make a connection.
+
+Cleaning up is done by stopping the DoS-attack on the server (sending an enable-packet).
