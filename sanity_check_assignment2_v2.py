@@ -29,7 +29,7 @@ def check_archive_size(archive_path):
     archive_size = archive_path.stat().st_size
     if archive_size > MAX_ARCHIVE_SIZE:
         size_in_mb = archive_size / BYTES_IN_MB
-        fail(f"ZIP archive too large (max 5MB, got {size_in_mb:.2f}MB)")
+        fail(f"ZIP archive too large (max 1MB, got {size_in_mb:.2f}MB)")
 
 
 def check_uncompressed_size(archive_path):
@@ -38,7 +38,7 @@ def check_uncompressed_size(archive_path):
         for file_info in archive_file.infolist():
             total_size += file_info.file_size
         if total_size > MAX_UNCOMPRESSED_SIZE:
-            fail(f"Uncompressed size is too large (max 200MB, got {total_size:.2f}MB)")
+            fail(f"Uncompressed size is too large (max 1MB, got {total_size:.2f}MB)")
 
 
 def find_missing_files(root_path, required_files):
@@ -55,10 +55,10 @@ def check_readme_file(archive_root):
     with readme_path.open("r") as readme_file:
         lines = [line.decode().strip() for line in readme_file]
 
-    if len(lines) != 5:
+    if len(lines) < 5:
         fail(f"invalid README: expected 5 lines, got {len(lines)}")
 
-    hackerhandle, name, email, vunetid, studentid = lines
+    hackerhandle, name, email, vunetid, studentid = lines[:5]
 
     if not re.match(r"^[a-zA-Z0-9]{3,16}$", hackerhandle):
         fail(
